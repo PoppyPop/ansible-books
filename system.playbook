@@ -1,0 +1,114 @@
+---
+
+- hosts: vms
+  become: yes
+  roles:
+    - sbaerlocher.qemu-guest-agent
+    - role: galexrt.kernel-modules
+      vars:
+        kernel_modules:
+          - name: usb-storage
+            unload: yes
+            blacklist: yes
+    
+- hosts: all
+  become: yes
+  vars:
+    - sftp_enabled: true
+    - ssh_client_alive_count: 2
+    - ssh_print_motd: true
+    - ssh_print_last_log: true
+    - security_fail2ban_enabled: false
+  roles:
+    - role: robertdebock.haveged
+    - role: ahuffman.aide
+    - role: dev-sec.ssh-hardening
+      when: ansible_facts['distribution'] != 'Fedora'
+    - role: dev-sec.ssh-hardening
+      when: ansible_facts['distribution'] == 'Fedora'      
+      ignore_errors: yes
+    - role: geerlingguy.security
+      when: ansible_facts['distribution'] != 'Fedora'
+    - role: geerlingguy.security
+      when: ansible_facts['distribution'] == 'Fedora'
+      vars:
+        - security_autoupdate_enabled: false
+    - role: exploide.dnf-automatic
+      when: ansible_facts['distribution'] == 'Fedora'
+    - role: robertdebock.fail2ban
+    - role: geerlingguy.clamav
+    - role: hudecof.banners
+    - role: jgeusebroek.sysstat
+    - role: andrewrothstein.screen
+
+#- role: zaxos.rkhunter-ansible-role
+#      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution'] != 'Fedora'
+#    - role: mablanco.antirootkits
+#      when: ansible_facts['os_family'] == 'Debian'
+
+- hosts: ansiblecc
+  become: yes
+  tasks:
+    - name: Replace sftp by scp in ansible conf
+      replace:
+        path: /etc/ansible/ansible.cfg 
+        regexp: '(#?scp_if_ssh = (?:smart|[Ff]alse))'
+        replace: 'scp_if_ssh = True'
+    - name: Install vulsctl        
+      git:
+        repo: 'https://github.com/vulsio/vulsctl.git'
+        dest: /opt/vulsctl
+  vars:
+    - firewall_allowed_tcp_ports:
+      - "22"
+    - sysctl_overwrite:
+      - net.ipv4.ip_forward: 1
+    - docker_users:
+      - ansible
+  roles:
+    - geerlingguy.firewall
+    - dev-sec.os-hardening
+    - geerlingguy.docker
+    
+- hosts: servers
+  become: yes
+  vars:
+    - firewall_allowed_tcp_ports:
+      - "22"
+  roles:
+    - dev-sec.os-hardening
+    - geerlingguy.firewall
+    
+- hosts: pveservers
+  become: yes
+  vars:
+    - firewall_allowed_tcp_ports:
+      - "22"
+      - "3128"
+      - "443"
+      - "111"
+      - "8006"
+    - firewall_allowed_udp_ports:
+      - "5404"
+      - "5405"
+    - firewall_forwarded_tcp_ports:
+      - { src: "443", dest: "8006" }
+    - sysctl_overwrite:
+      - net.ipv4.ip_forward: 1
+  roles:
+    - dev-sec.os-hardening
+    - geerlingguy.firewall
+    
+- hosts: dockerservers
+  become: yes
+  vars:
+    - firewall_allowed_tcp_ports:
+      - "22"
+    - sysctl_overwrite:
+      - net.ipv4.ip_forward: 1
+    - docker_users:
+      - ansible
+  roles:
+    - dev-sec.os-hardening
+    - geerlingguy.docker
+    - geerlingguy.firewall

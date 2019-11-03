@@ -1,0 +1,34 @@
+---
+
+- hosts: pveservers
+  become: true
+  vars:
+    - baseVmId: 9100
+    - newVmId: 2003
+    - newVmFqdn: "netbox.mo-ot.fr"
+    - newVmHDSize: 25
+    - newVmMem: 8196
+    - newVmCores: 4
+    - newVmIP: "10.0.2.3/20"
+    - newVmGw: "10.0.1.1"
+  tasks:
+    - name: "Clone VM from {{ baseVmId }} to {{ newVmId }}" 
+      shell: qm clone {{ baseVmId }} {{ newVmId }} -name {{ newVmFqdn }}
+    - name: "{{ newVmId }} Resize to {{ newVmHDSize }} Go"  
+      shell: qm resize {{ newVmId }} scsi0 +{{ newVmHDSize }}G
+    - name: "{{ newVmId }} Set : {{ newVmCores }}cores / {{ newVmMem }}memory / boot"
+      shell: qm set {{ newVmId }} --cores {{ newVmCores }} --memory {{ newVmMem }} --onboot 1     
+    - name: "{{ newVmId }} Set : CloudInit {{ newVmIP }} - {{ newVmGw }}"
+      shell: qm set {{ newVmId }} --ciuser ansible --cipassword ansible --ipconfig0 ip={{ newVmIP }},gw={{ newVmGw }}
+    - name: Copy SSH keys file
+      copy:
+        src: sshvm.pub
+        dest: /tmp/sshvm.pub
+    - name: "{{ newVmId }} SSH"
+      shell: qm set {{ newVmId }} --sshkeys /tmp/sshvm.pub
+    - name: Remove SSH keys file
+      file:
+        path: /tmp/sshvm.pub
+        state: absent 
+    - name: "{{ newVmId }} Start"
+      shell: qm start {{ newVmId }}     

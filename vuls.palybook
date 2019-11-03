@@ -1,0 +1,23 @@
+---
+
+- hosts: ansiblecc
+  become: yes
+  tasks:
+    - name: Refresh vuls database       
+      shell: ./update-all.sh
+      args:
+        chdir: /opt/vulsctl
+    - name: Refresh Hosts from Netbox       
+      shell: echo 'Ok'
+      args:
+        chdir: /opt/vulsctl
+    - name: Scan       
+      shell: ./scan.sh
+      args:
+        chdir: /opt/vulsctl
+    - name: Scan       
+      shell: ./report.sh -ignore-unfixed
+      args:
+        chdir: /opt/vulsctl
+        
+

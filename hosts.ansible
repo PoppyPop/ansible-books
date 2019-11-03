@@ -1,0 +1,25 @@
+acc.mo-ot.fr ansible_user=ansible
+pve.mo-ot.fr ansible_host=10.0.1.60 ansible_user=ansible
+ipa.mo-ot.fr ansible_host=10.0.2.2 ansible_user=ansible
+netbox.mo-ot.fr ansible_host=10.0.2.3 ansible_user=ansible
+
+[ansiblecc]
+acc.mo-ot.fr
+
+[pveservers]
+pve.mo-ot.fr
+
+[servers]
+netbox.mo-ot.fr
+ipa.mo-ot.fr
+
+[ipa]
+ipa.mo-ot.fr
+
+[netbox]
+netbox.mo-ot.fr
+
+[vms]
+acc.mo-ot.fr
+netbox.mo-ot.fr
+ipa.mo-ot.fr
