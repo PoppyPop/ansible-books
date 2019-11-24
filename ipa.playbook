@@ -1,0 +1,73 @@
+---
+
+- hosts: ipa
+  become: yes
+  tasks:
+    - name: Install IPA       
+      package: 
+        name: 
+          - freeipa-server
+          - freeipa-server-dns
+        state: latest
+    - name: Update cloud.cfg
+      lineinfile:
+        path: /etc/cloud/cloud.cfg
+        regexp: '^manage_etc_hosts:'
+        line: 'manage_etc_hosts:False'
+    - name: Update hosts IPV4
+      lineinfile:
+        path: /etc/hosts
+        regexp: '^[^:].* {{ ansible_fqdn }} {{ ansible_hostname }}'
+        line: '{{ ansible_default_ipv4.address }} {{ ansible_fqdn }} {{ ansible_hostname }}'
+    - name: Update hosts IPV6
+      lineinfile:
+        path: /etc/hosts
+        state: absent
+        line: '::1 {{ ansible_fqdn }} {{ ansible_hostname }}'
+    - name: Copy DDNS key
+      template:
+        src: tsig.conf.j2
+        dest: /etc/named/{{ ddns_key_name }}.key
+        group: named
+        setype: named_conf_t
+        mode: 0640
+    - name: Update ipa-ext.conf with ddns
+      lineinfile:
+        path: /etc/named/ipa-ext.conf
+        regexp: '^include "/etc.*{{ ddns_key_name }}.key";'
+        line: 'include "/etc/named/{{ ddns_key_name }}.key";'
+    - name: Add config
+      shell: ipa dnszone-mod mo-ot.fr. --update-policy="grant {{ ddns_key_name }} name mo-ot.fr A;"
+    - name: Permit update
+      shell: ipa dnszone-mod mo-ot.fr. --dynamic-update=1
+  vars:
+    - firewall_allowed_tcp_ports:
+      - "22"
+      - "80"
+      - "443"
+      - "389"
+      - "636"
+      - "88"
+      - "464"
+      - "53"
+    - firewall_allowed_udp_ports:
+      - "88"
+      - "464"
+      - "53"
+      - "123"
+  roles:           
+    - geerlingguy.firewall
+        
+        
+# ipa-server-install -r mo-ot.fr -p PASSWORD1 -a PASSWORD2 --setup-dns  --allow-zone-overlap --no-forwarders --ntp-pool=pool.ntp.org --unattended
+
+# IHM = -a
+#		TCP Ports:
+#		  * 80, 443: HTTP/HTTPS
+#		  * 389, 636: LDAP/LDAPS
+#		  * 88, 464: kerberos
+#		  * 53: bind
+#		UDP Ports:
+#		  * 88, 464: kerberos
+#		  * 53: bind
+#		  * 123: ntp
