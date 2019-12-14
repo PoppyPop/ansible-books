@@ -8,6 +8,8 @@
         name: 
           - freeipa-server
           - freeipa-server-dns
+          - certbot 
+          - python3-certbot-dns-cloudflare
         state: latest
     - name: Update cloud.cfg
       lineinfile:
@@ -24,6 +26,25 @@
         path: /etc/hosts
         state: absent
         line: '::1 {{ ansible_fqdn }} {{ ansible_hostname }}'
+    - name: Checking for previous FreeIPA installations...
+      stat: path=/etc/ipa/default.conf
+      register: ipa_config
+    - name: Performing the FreeIPA setup...
+      command: |
+        ipa-server-install \
+        -r mo-ot.fr \
+        -p PASSWORD1 -a PASSWORD2 \
+        --setup-dns  --allow-zone-overlap --no-forwarders \
+        --ntp-pool=pool.ntp.org \
+        --unattended
+      register: ipa_setup
+      failed_when: "'FAILED' in ipa_setup.stderr"
+      when: not ipa_config.stat.exists
+    - name: "IPA Setup State:"
+      debug:
+        msg:
+          - "{{ ipa_setup.stdout }}"
+      when: not ipa_config.stat.exists   
     - name: Copy DDNS key
       template:
         src: tsig.conf.j2
@@ -37,9 +58,27 @@
         regexp: '^include "/etc.*{{ ddns_key_name }}.key";'
         line: 'include "/etc/named/{{ ddns_key_name }}.key";'
     - name: Add config
-      shell: ipa dnszone-mod mo-ot.fr. --update-policy="grant {{ ddns_key_name }} name mo-ot.fr A;"
+      shell: ipa dnszone-mod mo-ot.fr. --update-policy="grant {{ ddns_key_name }} subdomain mo-ot.fr A TXT;"
     - name: Permit update
       shell: ipa dnszone-mod mo-ot.fr. --dynamic-update=1
+    - name: Checking for certbot
+      stat: path=/etc/letsencrypt/live/{{ ansible_fqdn }}/fullchain.pem
+      register: certbot_present
+    - name: Clone certbot helper
+      git:
+        repo: 'https://github.com/PoppyPop/certbot.git'
+        dest: /opt/poppypop-certbot
+      when: not certbot_present.stat.exists   
+    - name: Install certbot certs
+      command: /opt/poppypop-certbot/freeipa/install-cert.sh {{ certbot_mail }}
+      when: not certbot_present.stat.exists  
+    - name: Install certbot certs
+      command: /opt/poppypop-certbot/freeipa/install-renew-service.sh
+      when: not certbot_present.stat.exists
+    - name: Delete certbot apps
+      file:
+        state: absent
+        path: /opt/poppypop-certbot
   vars:
     - firewall_allowed_tcp_ports:
       - "22"
@@ -58,16 +97,97 @@
   roles:           
     - geerlingguy.firewall
         
-        
-# ipa-server-install -r mo-ot.fr -p PASSWORD1 -a PASSWORD2 --setup-dns  --allow-zone-overlap --no-forwarders --ntp-pool=pool.ntp.org --unattended
-
-# IHM = -a
-#		TCP Ports:
-#		  * 80, 443: HTTP/HTTPS
-#		  * 389, 636: LDAP/LDAPS
-#		  * 88, 464: kerberos
-#		  * 53: bind
-#		UDP Ports:
-#		  * 88, 464: kerberos
-#		  * 53: bind
-#		  * 123: ntp
+- hosts: ipareplica
+  become: yes
+  tasks:
+    - name: Install IPA       
+      package: 
+        name: 
+          - freeipa-server
+          - freeipa-server-dns
+          - certbot 
+          - python3-certbot-dns-cloudflare
+        state: latest
+    - name: Update cloud.cfg
+      lineinfile:
+        path: /etc/cloud/cloud.cfg
+        regexp: '^manage_etc_hosts:'
+        line: 'manage_etc_hosts:False'
+    - name: Update hosts IPV4
+      lineinfile:
+        path: /etc/hosts
+        regexp: '^[^:].* {{ ansible_fqdn }} {{ ansible_hostname }}'
+        line: '{{ ansible_default_ipv4.address }} {{ ansible_fqdn }} {{ ansible_hostname }}'
+    - name: Update hosts IPV6
+      lineinfile:
+        path: /etc/hosts
+        state: absent
+        line: '::1 {{ ansible_fqdn }} {{ ansible_hostname }}'
+    - name: Checking for previous FreeIPA installations...
+      stat: path=/etc/ipa/default.conf
+      register: ipa_config
+    - name: Performing the FreeIPA setup...
+      command: |
+        ipa-replica-install \
+        --setup-ca --setup-dns --no-forwarders \
+        --ntp-pool=pool.ntp.org \
+        --unattended
+      register: ipa_setup
+      failed_when: "'FAILED' in ipa_setup.stderr"
+      when: not ipa_config.stat.exists
+    - name: "IPA Setup State:"
+      debug:
+        msg:
+          - "{{ ipa_setup.stdout }}"
+      when: not ipa_config.stat.exists   
+    - name: Copy DDNS key
+      template:
+        src: tsig.conf.j2
+        dest: /etc/named/{{ ddns_key_name }}.key
+        group: named
+        setype: named_conf_t
+        mode: 0640
+    - name: Update ipa-ext.conf with ddns
+      lineinfile:
+        path: /etc/named/ipa-ext.conf
+        regexp: '^include "/etc.*{{ ddns_key_name }}.key";'
+        line: 'include "/etc/named/{{ ddns_key_name }}.key";'
+    - name: Add config
+      shell: ipa dnszone-mod mo-ot.fr. --update-policy="grant {{ ddns_key_name }} subdomain mo-ot.fr A TXT;"
+    - name: Permit update
+      shell: ipa dnszone-mod mo-ot.fr. --dynamic-update=1
+    - name: Checking for certbot
+      stat: path=/etc/letsencrypt/live/{{ ansible_fqdn }}/fullchain.pem
+      register: certbot_present
+    - name: Clone certbot helper
+      git:
+        repo: 'https://github.com/PoppyPop/certbot.git'
+        dest: /opt/poppypop-certbot
+      when: not certbot_present.stat.exists   
+    - name: Install certbot certs
+      command: /opt/poppypop-certbot/freeipa/install-cert.sh {{ certbot_mail }}
+      when: not certbot_present.stat.exists  
+    - name: Install certbot certs
+      command: /opt/poppypop-certbot/freeipa/install-renew-service.sh
+      when: not certbot_present.stat.exists
+    - name: Delete certbot apps
+      file:
+        state: absent
+        path: /opt/poppypop-certbot
+  vars:
+    - firewall_allowed_tcp_ports:
+      - "22"
+      - "80"
+      - "443"
+      - "389"
+      - "636"
+      - "88"
+      - "464"
+      - "53"
+    - firewall_allowed_udp_ports:
+      - "88"
+      - "464"
+      - "53"
+      - "123"
+  roles:           
+    - geerlingguy.firewall
