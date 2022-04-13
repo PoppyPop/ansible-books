@@ -1,6 +1,6 @@
 ---
 
-- hosts: ipa
+- hosts: ipa.moot.ovh
   become: yes
   tasks:
     - name: Install IPA       
@@ -8,8 +8,10 @@
         name: 
           - freeipa-server
           - freeipa-server-dns
+          - freeipa-server-trust-ad
           - certbot 
           - python3-certbot-dns-cloudflare
+          - git
         state: latest
     - name: Update cloud.cfg
       lineinfile:
@@ -32,8 +34,8 @@
     - name: Performing the FreeIPA setup...
       command: |
         ipa-server-install \
-        -r mo-ot.fr \
-        -p PASSWORD1 -a PASSWORD2 \
+        -r moot.ovh \
+        -p {{ ipa_dm_password }} -a {{ ipa_admin_password }} \
         --setup-dns  --allow-zone-overlap --no-forwarders \
         --ntp-pool=pool.ntp.org \
         --unattended
@@ -58,9 +60,11 @@
         regexp: '^include "/etc.*{{ ddns_key_name }}.key";'
         line: 'include "/etc/named/{{ ddns_key_name }}.key";'
     - name: Add config
-      shell: ipa dnszone-mod mo-ot.fr. --update-policy="grant {{ ddns_key_name }} subdomain mo-ot.fr A TXT;"
+      shell: ipa dnszone-mod moot.ovh. --update-policy="grant {{ ddns_key_name }} subdomain moot.ovh A TXT;"
+      ignore_errors: yes
     - name: Permit update
-      shell: ipa dnszone-mod mo-ot.fr. --dynamic-update=1
+      shell: ipa dnszone-mod moot.ovh. --dynamic-update=1
+      ignore_errors: yes
     - name: Checking for certbot
       stat: path=/etc/letsencrypt/live/{{ ansible_fqdn }}/fullchain.pem
       register: certbot_present
@@ -94,8 +98,11 @@
       - "464"
       - "53"
       - "123"
+    - docker_users:
+      - ansible
   roles:           
     - geerlingguy.firewall
+    - geerlingguy.docker
         
 - hosts: ipareplica
   become: yes
@@ -153,9 +160,11 @@
         regexp: '^include "/etc.*{{ ddns_key_name }}.key";'
         line: 'include "/etc/named/{{ ddns_key_name }}.key";'
     - name: Add config
-      shell: ipa dnszone-mod mo-ot.fr. --update-policy="grant {{ ddns_key_name }} subdomain mo-ot.fr A TXT;"
+      shell: ipa dnszone-mod moot.ovh. --update-policy="grant {{ ddns_key_name }} subdomain moot.ovh A TXT;"
+      ignore_errors: yes
     - name: Permit update
-      shell: ipa dnszone-mod mo-ot.fr. --dynamic-update=1
+      shell: ipa dnszone-mod moot.ovh. --dynamic-update=1
+      ignore_errors: yes
     - name: Checking for certbot
       stat: path=/etc/letsencrypt/live/{{ ansible_fqdn }}/fullchain.pem
       register: certbot_present

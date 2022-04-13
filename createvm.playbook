@@ -5,7 +5,7 @@
   vars:
     - baseVmId: 9100
     - newVmName: "test"
-    - newVmDomain: "mo-ot.fr"
+    - newVmDomain: "moot.ovh"
     - newVmFqdn: "{{ newVmName }}.{{ newVmDomain }}"
     - newVmHDSize: 25
     - newVmMem: 8196
@@ -25,7 +25,7 @@
       shell: qm set {{ newVmId }} --ciuser ansible --cipassword ansible --ipconfig0 ip={{ newVmIP }}/{{ newVmMask }},gw={{ newVmGw }}
     - name: Copy SSH keys file
       copy:
-        src: sshvm.pub
+        src: ~/.ssh/ansiblekey.pub
         dest: /tmp/sshvm.pub
     - name: "{{ newVmId }} SSH"
       shell: qm set {{ newVmId }} --sshkeys /tmp/sshvm.pub

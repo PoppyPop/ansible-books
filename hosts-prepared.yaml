@@ -1,0 +1,15 @@
+---
+
+all:
+   vars:
+      ansible_user: ansible
+      ansible_ssh_private_key_file: ~/.ssh/ansiblekey
+   hosts:
+      pve1.moot.ovh:
+         ansible_host: 10.0.1.1
+      ipa.moot.ovh:
+         ansible_host: 10.0.1.101
+      netbox.moot.ovh:
+         ansible_host: 10.0.1.102
+      pve2.moot.ovh:
+         ansible_host: 10.0.2.1

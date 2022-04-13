@@ -1,0 +1,29 @@
+GLOBAL
+secure all root passwd
+
+PVE1
+https://blog.zwindler.fr/2019/10/11/un-cluster-proxmox-ve-avec-seulement-2-machines/
+
+
+IPA
+ipa-adtrust-install
+
+
+	TCP Ports:
+	  * 135: epmap
+	  * 138: netbios-dgm
+	  * 139: netbios-ssn
+	  * 445: microsoft-ds
+	  * 1024..1300: epmap listener range
+	  * 3268: msft-gc
+	UDP Ports:
+	  * 138: netbios-dgm
+	  * 139: netbios-ssn
+	  * 389: (C)LDAP
+	  * 445: microsoft-ds
+
+
+https://bgstack15.wordpress.com/2017/05/10/samba-share-with-freeipa-auth/
+https://freeipa-users.redhat.narkive.com/ez2uKpFS/authenticate-samba-3-or-4-with-freeipa
+https://www.redhat.com/archives/freeipa-users/2015-September/msg00052.html
+https://www.freeipa.org/page/Howto/Integrating_a_Samba_File_Server_With_IPA
