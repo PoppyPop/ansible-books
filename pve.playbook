@@ -20,6 +20,8 @@
       - net.ipv6.conf.lo.disable_ipv6: 0
       - net.ipv4.conf.all.log_martians: 0
       - net.ipv4.conf.default.log_martians: 0
+      - net.core.default_qdisc: "fq"
+      - net.ipv4.tcp_congestion_control: "bbr"
   collections:
     - devsec.hardening
   roles:
@@ -29,4 +31,4 @@
     - name: Install prereq
       package:
         name: python3-apt
-        state: present    
+        state: present
