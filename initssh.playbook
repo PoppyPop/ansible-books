@@ -1,17 +1,24 @@
 ---
 
-- hosts: netbox.moot.ovh
+- hosts: all
+  become: true
   tasks:
-    - name: install sudo Other
-      package:
-        name: sudo
-        state: present
-            
     - name: Make sure we have a 'wheel' group
       group:
         name: wheel
+        state: present     
+    - name: Add the user 'ansible'
+      user:
+        name: ansible
+        groups: wheel
+        append: yes
+        shell: /bin/bash
+    - name: Set authorized key taken from file
+      authorized_key:
+        user: ansible
         state: present
-    
+        key: "{{ lookup('file', '~/.ssh/ansiblekey.pub') }}"
+
     - name: Allow 'wheel' group to have passwordless sudo
       lineinfile:
         dest: /etc/sudoers
@@ -19,23 +26,6 @@
         regexp: '^%wheel'
         line: '%wheel ALL=(ALL) NOPASSWD: ALL'
         validate: 'visudo -cf %s'
-    
-    - name: Add ansible users to wheel group
-      user:
-        name=ansible
-        groups=wheel
-        append=yes
-        state=present
-        password_lock=yes
-        
-- hosts: all
-  become: true
-  tasks:     
-    - name: Set authorized key taken from file
-      authorized_key:
-        user: ansible
-        state: present
-        key: "{{ lookup('file', '~/.ssh/ansiblekey.pub') }}"
           
     - name: Ensure hostname set
       hostname: name={{ inventory_hostname }}

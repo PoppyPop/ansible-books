@@ -12,17 +12,21 @@
     - firewall_allowed_udp_ports:
       - "5404"
       - "5405"
+      - "5353"
     - firewall_forwarded_tcp_ports:
       - { src: "443", dest: "8006" }
     - sysctl_overwrite:
       - net.ipv4.ip_forward: 1
       - net.ipv6.conf.lo.disable_ipv6: 0
+      - net.ipv4.conf.all.log_martians: 0
+      - net.ipv4.conf.default.log_martians: 0
+  collections:
+    - devsec.hardening
   roles:
-    - dev-sec.os-hardening
+    - devsec.hardening.os_hardening
     - geerlingguy.firewall
-  tasks:
-    - name: install dnspython
+  pre_tasks:
+    - name: Install prereq
       package:
-        name: python-dnspython
-        state: latest
-    
+        name: python3-apt
+        state: present    

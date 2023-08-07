@@ -4,12 +4,15 @@ all:
    vars:
       ansible_user: ansible
       ansible_ssh_private_key_file: ~/.ssh/ansiblekey
+      ansible_python_interpreter: /usr/bin/python3
    hosts:
-      pve1.moot.ovh:
-         ansible_host: 10.0.1.1
       ipa.moot.ovh:
          ansible_host: 10.0.1.101
-      netbox.moot.ovh:
-         ansible_host: 10.0.1.102
-      pve2.moot.ovh:
-         ansible_host: 10.0.2.1
+
+   children:
+      pveservers:
+         hosts:
+            pve1.moot.ovh:
+               ansible_host: 10.0.1.1
+            pve2.moot.ovh:
+               ansible_host: 10.0.2.1
