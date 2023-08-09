@@ -10,7 +10,13 @@ all:
 
   children:
     cts:
+      hosts:
+        acc.moot.ovh:
+        unifi.moot.ovh:
       children:
+        frigate:
+          hosts:
+            frigate.moot.ovh:
         dockerregistry:
           hosts:
             sys10.moot.ovh:
