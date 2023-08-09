@@ -1,0 +1,47 @@
+---
+
+- hosts: cts
+  become: yes
+
+  vars:
+    certbot_auto_renew: true
+    certbot_auto_renew_user: root
+    docker_users:
+      - ansible
+
+  roles:
+    - geerlingguy.certbot
+    - geerlingguy.docker
+  
+  tasks:
+    - name: Install the latest version of python3-docker
+      package:
+        name: 
+          - python3-docker
+          - docker-compose
+        state: latest
+    - name: Install Certbot Cloudflare
+      package: 
+        name: python3-certbot-dns-cloudflare
+        state: present
+        
+    - name: Create Certbot folder - /etc/letsencrypt
+      file:
+        path: /etc/letsencrypt
+        state: directory
+        owner: root
+        group: root
+        mode: 0700
+
+    - name: Certbot Template
+      template:
+        src: "cloudflare/dnscloudflare.ini.j2"
+        dest: "/etc/letsencrypt/dnscloudflare.ini"
+        owner: root
+        group: root
+        mode: 0600
+
+    - name: Certbot | Generate Certificate
+      command: certbot certonly --non-interactive --agree-tos --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/dnscloudflare.ini -m {{certbot_mail}} -d {{inventory_hostname}}
+      args:
+        creates: /etc/letsencrypt/renewal/{{inventory_hostname}}.conf

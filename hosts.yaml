@@ -5,18 +5,19 @@ all:
       ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
       ansible_python_interpreter: /usr/bin/python3
       ansible_user: root
-      ansible_password: !vault |
-          $ANSIBLE_VAULT;1.1;AES256
-          31326165306161393065356362363763663334643036366131313865303663383437363164383765
-          3464643731393838396361666532616439613066323438300a333231353038363535356432333437
-          65363335323037306131663364386461363834303638326565353630643961373232633638613933
-          6261663661616438640a386161306563353136356430323032396363663266353266363464663362
-          6461
+      ansible_private_key_file: ~/.ssh/poppy
    hosts:
       pve1.moot.ovh:
          ansible_host: 10.0.1.1
       ipa.moot.ovh:
          ansible_host: 10.0.1.101
-         ansible_user: ansible
       pve2.moot.ovh:
          ansible_host: 10.0.2.1
+      sys10.moot.ovh:
+         ansible_host: 10.0.1.110
+      sys11.moot.ovh:
+         ansible_host: 10.0.1.111
+      sys12.moot.ovh:
+         ansible_host: 10.0.2.109
+      sys13.moot.ovh:
+         ansible_host: 10.0.1.113

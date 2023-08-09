@@ -3,10 +3,17 @@
 - hosts: all
   become: true
   tasks:
+    - name: Run the equivalent of "apt-get update" as a separate step
+      apt:
+        update_cache: yes
+    - name: Install sudo
+      ansible.builtin.package:
+        name: sudo
+        state: present
     - name: Make sure we have a 'wheel' group
       group:
         name: wheel
-        state: present     
+        state: present
     - name: Add the user 'ansible'
       user:
         name: ansible
@@ -41,3 +48,13 @@
         name=ansible
         state=present
         password_lock=yes
+        
+    - name: Ensure dns record is present
+      community.general.ipa_dnsrecord:
+        ipa_host: ipa.moot.ovh
+        ipa_pass: "{{ ipa_admin_password }}"
+        state: present
+        zone_name: moot.ovh
+        record_name: "{{ inventory_hostname_short }}"
+        record_type: 'A'
+        record_value: "{{ ansible_host }}"

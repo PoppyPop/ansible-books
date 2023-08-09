@@ -1,0 +1,48 @@
+---
+
+- hosts: dockernode
+  become: yes
+  vars:
+    docker_daemon_options:
+      registry-mirrors: ["https://10.0.1.110"]
+  tasks:
+    - name: Custom docker config
+      template:
+        src: registry/daemon.json.j2
+        dest: /etc/docker/daemon.json
+      register: custom_docker
+    - name: Restart service docker
+      ansible.builtin.service:
+        name: docker
+        state: restarted
+      when: custom_docker.changed
+    - name: Create folder - compose
+      file:
+        path: compose
+        state: directory
+    - name: copy docker-compose.yml
+      template:
+        src: "{{ item }}"
+        dest: compose/{{ item | basename | regex_replace('\.j2$', '') }}
+      with_fileglob:
+        - compose/*.j2
+    - name: copy host reserved docker-compose
+      template:
+        src: "{{ item }}"
+        dest: compose/{{ item | basename | regex_replace('\.j2$', '') }}
+      with_fileglob:
+        - compose/{{inventory_hostname}}/*.j2
+        
+    - name: finding compose
+      find:
+        paths:            "compose"
+        patterns:         "*.compose"
+        recurse:          "no"
+        file_type:        "file"
+      register: find_result
+      
+    - name: Deploy compose
+      community.docker.docker_compose:
+        project_src: compose
+        files: "{{ item.path | basename }}"
+      with_items: "{{ find_result.files }}"

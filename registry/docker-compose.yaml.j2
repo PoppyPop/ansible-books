@@ -1,0 +1,21 @@
+version: '3.7'
+services:
+  dockerregistrymirror:
+    container_name: docker-registry-mirror
+    image: registry:2
+    ports:
+      - "443:443"
+    volumes:
+      - /data/registry:/var/lib/registry
+      - /etc/letsencrypt/live:/certs/live
+      - /etc/letsencrypt/archive:/certs/archive
+    environment:
+      - TZ=Europe/Paris
+      - REGISTRY_PROXY_REMOTEURL=https://registry-1.docker.io
+      - REGISTRY_PROXY_USERNAME=poppypop
+      - REGISTRY_PROXY_PASSWORD="{{ docker_pass }}"
+      - REGISTRY_HTTP_ADDR=0.0.0.0:443
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/certs/live/{{inventory_hostname}}/fullchain.pem
+      - REGISTRY_HTTP_TLS_KEY=/certs/live/{{inventory_hostname}}/privkey.pem
+      - REGISTRY_STORAGE_DELETE_ENABLED=true
+    restart: unless-stopped
