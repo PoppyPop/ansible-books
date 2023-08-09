@@ -2,13 +2,10 @@
 
 - hosts: dockernode
   become: yes
-  vars:
-    docker_daemon_options:
-      registry-mirrors: ["https://10.0.1.110"]
   tasks:
     - name: Custom docker config
       template:
-        src: registry/daemon.json.j2
+        src: daemon.json.j2
         dest: /etc/docker/daemon.json
       register: custom_docker
     - name: Restart service docker

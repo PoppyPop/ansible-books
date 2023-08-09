@@ -13,5 +13,5 @@ services:
         mode: host
     environment:
       - TZ=Europe/Paris
-      - ARGS=-u https://dns.adguard.com/dns-query -u https://dns.cloudflare.com/dns-query -u [/moot.ovh/]10.0.1.101 --fastest-addr --cache 
+      - ARGS=-u https://dns.adguard.com/dns-query -u https://dns.cloudflare.com/dns-query -u [/moot.ovh/]10.0.1.101 -b 1.1.1.1:53 --fastest-addr --cache 
     restart: unless-stopped

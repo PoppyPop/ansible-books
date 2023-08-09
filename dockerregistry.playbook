@@ -4,17 +4,54 @@
   become: yes
 
   tasks:
-    - name: Create folder - registry
+    - name: Create folder - compose
       file:
-        path: registry
+        path: compose/{{ item | basename | replace('.j2', '') | splitext | first }}
         state: directory
+      with_fileglob:
+        - registry/*.j2
     - name: copy docker-compose.yml
       template:
         src: "{{ item }}"
-        dest: registry/{{ item | basename | regex_replace('\.j2$', '') }}
+        dest: compose/{{ item | basename | replace('.j2', '') | splitext | first }}/docker-compose.yaml
       with_fileglob:
         - registry/*.j2
-    - name: Deploy docker_compose
+        
+    - name: finding compose
+      find:
+        paths:            "compose"
+        recurse:          "no"
+        file_type:        "directory"
+      register: find_result  
+  
+    - name: Deploy compose
       community.docker.docker_compose:
-        project_src: registry
-        restarted : true
+        project_src: "{{ item.path }}"
+      with_items: "{{ find_result.files }}" 
+  
+  
+  
+  
+  
+
+    # - name: debug
+      # debug:
+        # msg: "First item: {{ item | basename }} | {{ (item | basename) | replace('.j2', '') | splitext | first }}"
+      # with_fileglob:
+        # - registry/*.j2
+    # - name: Create folder - compose
+      # file:
+        # path: compose
+        # state: directory
+      # with_fileglob:
+        # - registry/*.j2
+    # - name: copy docker-compose.yml
+      # template:
+        # src: "{{ item }}"
+        # dest: registry/{{ item | basename | regex_replace('\.j2$', '') }}
+      # with_fileglob:
+        # - registry/*.j2
+    # - name: Deploy docker_compose
+      # community.docker.docker_compose:
+        # project_src: registry
+        # restarted : true

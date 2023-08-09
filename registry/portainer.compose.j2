@@ -1,0 +1,20 @@
+version: "3"
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - 9443:9443
+      - 8000:8000
+    volumes:
+      - data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/letsencrypt/live:/certs/live
+      - /etc/letsencrypt/archive:/certs/archive
+    restart: unless-stopped
+    command: 
+      - "--sslcert"
+      - "/certs/live/{{inventory_hostname}}/fullchain.pem"
+      - "--sslkey"
+      - "/certs/live/{{inventory_hostname}}/privkey.pem"
+volumes:
+  data:
