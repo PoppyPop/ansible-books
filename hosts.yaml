@@ -27,3 +27,5 @@ all:
          ansible_host: 10.0.1.100
       unifi.moot.ovh:
          ansible_host: 10.0.1.115
+      beta.moot.ovh:
+         ansible_host: 10.0.2.200
