@@ -37,6 +37,18 @@
         recurse:          "no"
         file_type:        "file"
       register: find_result
+     
+    - name: Create Dir
+      ansible.builtin.file:
+        path: /opt/{{ item.path | basename | regex_replace('\.compose$', '') }}
+        state: directory
+      with_items: "{{ find_result.files }}"	 
+           
+      
+    - name: Copy files
+      ansible.builtin.copy:
+        src: compose-files/
+        dest: /opt/
       
     - name: Deploy compose
       community.docker.docker_compose:
