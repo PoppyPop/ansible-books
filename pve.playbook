@@ -10,6 +10,10 @@
       - "111"
       - "8006"
       - "3493"
+      - "5201"
+      - "5202"
+      - "5203"
+      - "5204"
     - firewall_allowed_udp_ports:
       - "5404"
       - "5405"
@@ -23,6 +27,23 @@
       - net.ipv4.conf.default.log_martians: 0
       - net.core.default_qdisc: "fq"
       - net.ipv4.tcp_congestion_control: "bbr"
+      - net.core.rmem_max: 268435456
+      - net.core.wmem_max: 268435456
+      - net.ipv4.tcp_rmem: "4096 87380 134217728"
+      - net.ipv4.tcp_wmem: "4096 65536 134217728"
+      - net.ipv4.tcp_no_metrics_save: 1
+      - net.ipv6.conf.all.forwarding: 1
+      - net.ipv6.conf.all.accept_ra: 2
+      - net.ipv6.conf.default.accept_ra: 2
+      - net.ipv6.conf.default.router_solicitations: 3
+      - net.ipv6.conf.all.router_solicitations: 3
+      - net.ipv6.conf.default.accept_ra_rtr_pref: 1
+      - net.ipv6.conf.default.accept_ra_pinfo: 1
+      - net.ipv6.conf.default.accept_ra_defrtr: 1
+      - net.ipv6.conf.default.autoconf: 1
+      - net.ipv6.conf.all.autoconf: 1
+      - net.ipv6.conf.default.dad_transmits: 1
+      - net.ipv6.conf.default.max_addresses: 16
   collections:
     - devsec.hardening
   roles:

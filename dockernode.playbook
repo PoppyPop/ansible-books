@@ -53,5 +53,6 @@
     - name: Deploy compose
       community.docker.docker_compose:
         project_src: compose
+        pull: true
         files: "{{ item.path | basename }}"
       with_items: "{{ find_result.files }}"
