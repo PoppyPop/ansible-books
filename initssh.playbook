@@ -6,9 +6,23 @@
     - name: Run the equivalent of "apt-get update" as a separate step
       apt:
         update_cache: yes
+      when: ansible_facts['distribution'] != 'Fedora'
+      when: 0 > 1
     - name: Install sudo
       ansible.builtin.package:
         name: sudo
+        state: present
+    - name: Install nano
+      ansible.builtin.package:
+        name: nano
+        state: present
+    - name: Install screen
+      ansible.builtin.package:
+        name: screen
+        state: present
+    - name: Install haveged
+      ansible.builtin.package:
+        name: haveged
         state: present
     - name: Make sure we have a 'wheel' group
       group:
@@ -50,11 +64,9 @@
         password_lock=yes
         
     - name: Ensure dns record is present
-      community.general.ipa_dnsrecord:
-        ipa_host: ipa.moot.ovh
-        ipa_pass: "{{ ipa_admin_password }}"
-        state: present
-        zone_name: moot.ovh
-        record_name: "{{ inventory_hostname_short }}"
-        record_type: 'A'
-        record_value: "{{ ansible_host }}"
+      ansible.builtin.assert:
+        that:
+          - dig != ""
+          - dig != "NXDOMAIN"
+      vars:
+        dig: "{{ lookup('community.general.dig', inventory_hostname) }}"

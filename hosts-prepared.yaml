@@ -28,6 +28,9 @@ all:
             sys11.moot.ovh:
             sys12.moot.ovh:
             sys13.moot.ovh:
+    nas:
+      hosts:
+        test.moot.ovh:
     pveservers:
       hosts:
         pve1.moot.ovh:

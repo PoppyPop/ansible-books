@@ -1,0 +1,77 @@
+---
+
+- hosts: nas
+  become: yes
+  vars:
+    localgroups:
+      - media
+      - apps
+    users:
+      - poppy
+      - cookiesochocola
+    sysusers:
+      - media
+  tasks:
+    - name: "Create groups"
+      ansible.builtin.group:
+        name: "{{ item }}"
+      with_items: "{{ localgroups }}"
+    - name: "Create user accounts"
+      ansible.builtin.user:
+        name: "{{ item }}"
+        append: yes
+        update_password: "on_create"
+        password: "{{ accountdefaultpwd }}"
+        groups: media
+      with_items: "{{ users }}"
+      register: accounts
+      
+    - name: force change password
+      command: "chage -d 0 {{ item.name }}"
+      when: item.changed
+      with_items: "{{ accounts.results }}"
+      
+    - name: "Create system user"
+      ansible.builtin.user:
+        name: "{{ item }}"
+        append: yes
+        password_lock: true
+        system: true
+        groups: media, apps
+      with_items: "{{ sysusers }}"
+      
+    - name: Check for ssh pub keys
+      ansible.builtin.stat:
+        path: "{{ 'files/'+ item + '.pub' }}"
+      delegate_to: localhost
+      register: path_to_file_stat
+      with_items: "{{ users }}"
+    - name: "Add authorized keys"
+      authorized_key:
+        user: "{{ item.item }}"
+        key: "{{ lookup('file', item.invocation.module_args.path) }}"
+      with_items: "{{ path_to_file_stat.results }}"
+      when:
+        - item.stat.exists == true
+        
+    - name: Allow poppy to SUDO All
+      community.general.sudoers:
+        name: allow-poppy
+        state: present
+        nopassword: false
+        user: poppy
+        commands: ALL
+        
+    - name: Install NFS server
+      ansible.builtin.package:
+        name: nfs-utils
+        state: present
+    - name: Install SMB server
+      ansible.builtin.package:
+        name: samba
+        state: present
+    - name: Activate SMBD
+      ansible.builtin.systemd_service:
+        name: "smb"
+        enabled: true
+        state: "started"
