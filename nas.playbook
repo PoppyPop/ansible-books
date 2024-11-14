@@ -6,11 +6,21 @@
     localgroups:
       - media
       - apps
+      - admins
     users:
       - poppy
       - cookiesochocola
+    adminusers:
+      - poppy
     sysusers:
       - media
+    docker_users:
+      - ansible
+    ansible_python_interpreter: /usr/bin/python3.11
+      
+  roles:
+    - geerlingguy.docker
+    
   tasks:
     - name: "Create groups"
       ansible.builtin.group:
@@ -30,6 +40,13 @@
       command: "chage -d 0 {{ item.name }}"
       when: item.changed
       with_items: "{{ accounts.results }}"
+      
+    - name: "Add admins to group"
+      ansible.builtin.user:
+        name: "{{ item }}"
+        append: yes
+        groups: admins
+      with_items: "{{ adminusers }}"
       
     - name: "Create system user"
       ansible.builtin.user:
@@ -75,3 +92,38 @@
         name: "smb"
         enabled: true
         state: "started"
+        
+    - name: Add smb.conf
+      ansible.builtin.copy:
+        src: files/smb.conf
+        dest: /etc/samba/smb.conf
+        
+    - name: Copy manage-share
+      ansible.builtin.copy:
+        src: files/manage-share.sh
+        dest: /srv/manage-share.sh
+        mode: '0744'
+        
+    - name: Copy mkhomedir
+      ansible.builtin.copy:
+        src: files/mkhomedir.sh
+        dest: /srv/mkhomedir.sh
+        mode: '0744'
+        
+    - name: Create /datas
+      ansible.builtin.file:
+        path: /datas
+        state: directory
+        mode: '0775'
+        
+    - name: Create /datas/Shares
+      ansible.builtin.file:
+        path: /datas/Shares
+        state: directory
+        mode: '0755'
+  
+    - name: Create /datas/Shares/usershare
+      ansible.builtin.file:
+        path: /datas/Shares/usershare
+        state: directory
+        mode: '0775'  
