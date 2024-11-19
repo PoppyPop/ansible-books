@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+  psacc:
+    image: flobz/psa_car_controller:latest
+    restart: unless-stopped
+    ports:
+      - target: 5000
+        published: 5000
+        protocol: tcp
+    volumes:
+      - /opt/psacc:/config
+    environment:
+      - PSACC_OPTIONS=-r --web-conf -c
+      

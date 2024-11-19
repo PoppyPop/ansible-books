@@ -12,11 +12,7 @@ all:
     cts:
       hosts:
         acc.moot.ovh:
-        unifi.moot.ovh:
       children:
-        unifi:
-          hosts:
-            beta.moot.ovh:
         frigate:
           hosts:
             frigate.moot.ovh:

@@ -25,5 +25,3 @@ all:
          ansible_host: 10.0.1.108
       acc.moot.ovh:
          ansible_host: 10.0.1.100
-      test.moot.ovh:
-         ansible_host: 10.0.2.105
