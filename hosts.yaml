@@ -19,9 +19,9 @@ all:
          ansible_host: 10.0.1.111
       sys12.moot.ovh:
          ansible_host: 10.0.2.109
-      sys13.moot.ovh:
-         ansible_host: 10.0.1.113
       frigate.moot.ovh:
          ansible_host: 10.0.1.108
       acc.moot.ovh:
          ansible_host: 10.0.1.100
+      test.moot.ovh:
+         ansible_host: 10.0.2.105

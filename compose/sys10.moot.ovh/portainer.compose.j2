@@ -6,7 +6,7 @@ services:
       - 9443:9443
       - 8000:8000
     volumes:
-      - data:/data
+      - /datas/portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
       - /etc/letsencrypt/live:/certs/live
       - /etc/letsencrypt/archive:/certs/archive

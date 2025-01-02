@@ -1,6 +1,5 @@
 ---
-
-- hosts: cts
+- hosts: dockernode
   become: yes
 
   vars:
@@ -45,3 +44,24 @@
       command: certbot certonly --non-interactive --agree-tos --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/dnscloudflare.ini -m {{certbot_mail}} -d {{inventory_hostname}}
       args:
         creates: /etc/letsencrypt/renewal/{{inventory_hostname}}.conf
+    
+    - name: Create portainer folder
+      file:
+        path: /opt/portainer
+        state: directory
+        owner: root
+        group: root
+        mode: 0700
+        recurse: yes
+
+    - name: Launch portainer agent
+      docker_container:
+        name: portainer-agent
+        image: portainer/agent
+        state: started
+        restart_policy: always
+        ports:
+          - "9001:9001"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /opt/portainer:/data

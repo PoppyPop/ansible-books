@@ -1,6 +1,6 @@
 ---
 
-- hosts: dockernode
+- hosts: nas
   become: yes
   tasks:
     - name: Custom docker config
@@ -8,21 +8,31 @@
         src: daemon.json.j2
         dest: /etc/docker/daemon.json
       register: custom_docker
+
     - name: Restart service docker
       ansible.builtin.service:
         name: docker
         state: restarted
       when: custom_docker.changed
+
     - name: Create folder - compose
       file:
         path: compose
         state: directory
+
+    - name: Create folder - datas
+      ansible.builtin.file:
+        path: "/datas/apps"
+        state: directory
+        recurse: yes
+
     - name: copy docker-compose.yml
       template:
         src: "{{ item }}"
         dest: compose/{{ item | basename | regex_replace('\.j2$', '') }}
       with_fileglob:
         - compose/*.j2
+
     - name: copy host reserved docker-compose
       template:
         src: "{{ item }}"
@@ -40,19 +50,23 @@
      
     - name: Create Dir
       ansible.builtin.file:
-        path: /opt/{{ item.path | basename | regex_replace('\.compose$', '') }}
+        path: "/datas/apps/{{ item.path | basename | splitext | first }}"
         state: directory
+        group: apps
+        mode: 0775
       with_items: "{{ find_result.files }}"	 
            
-      
     - name: Copy files
       ansible.builtin.copy:
-        src: compose-files/
-        dest: /opt/
-      
+        src: "compose-files/{{ item.path | basename | splitext | first }}"
+        dest: "/datas/apps/{{ item.path | basename | splitext | first }}"
+      with_items: "{{ find_result.files }}"
+      failed_when: false
+
     - name: Deploy compose
       community.docker.docker_compose:
         project_src: compose
+        project_name: "{{ item.path | basename | splitext | first }}"
         pull: true
         files: "{{ item.path | basename }}"
       with_items: "{{ find_result.files }}"

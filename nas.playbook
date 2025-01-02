@@ -3,10 +3,13 @@
 - hosts: nas
   become: yes
   vars:
+    admin_group: admins
+    apps_group: apps
+    media_group: media
     localgroups:
-      - media
-      - apps
       - admins
+      - apps
+      - media
     users:
       - poppy
       - cookiesochocola
@@ -16,13 +19,6 @@
       - media
     docker_users:
       - ansible
-    ansible_python_interpreter: /usr/bin/python3.11
-    certbot_auto_renew: true
-    certbot_auto_renew_user: root
-      
-  roles:
-    - geerlingguy.certbot
-    - geerlingguy.docker
     
   tasks:
     - name: "Create groups"
@@ -35,7 +31,7 @@
         append: yes
         update_password: "on_create"
         password: "{{ accountdefaultpwd }}"
-        groups: media
+        groups: "{{ media_group }}"
       with_items: "{{ users }}"
       register: accounts
       
@@ -48,7 +44,7 @@
       ansible.builtin.user:
         name: "{{ item }}"
         append: yes
-        groups: admins
+        groups: "{{ admin_group }}"
       with_items: "{{ adminusers }}"
       
     - name: "Create system user"
@@ -57,7 +53,9 @@
         append: yes
         password_lock: true
         system: true
-        groups: media, apps
+        group: "{{ media_group }}"
+        groups: 
+          - "{{ apps_group }}"
       with_items: "{{ sysusers }}"
       
     - name: Check for ssh pub keys
@@ -82,9 +80,14 @@
         user: poppy
         commands: ALL
         
+    - name: Install ACL
+      ansible.builtin.package:
+        name: acl
+        state: present
+
     - name: Install NFS server
       ansible.builtin.package:
-        name: nfs-utils
+        name: nfs-common
         state: present
     - name: Install SMB server
       ansible.builtin.package:
@@ -130,3 +133,28 @@
         path: /datas/Shares/usershare
         state: directory
         mode: '0775'  
+
+    - name: Set Global ACL
+      ansible.posix.acl:
+        path: /datas
+        default: true
+        recursive: true
+        state: present
+        entity: "{{ admin_group }}"
+        etype: group
+        permissions: rwX
+
+    - name: Create MACVLAN network
+      docker_network:
+        name: macvlan
+        driver: macvlan
+        driver_options:
+          parent: eth0
+        ipam_config:
+          - subnet: 10.0.0.0/20
+            gateway: 10.0.0.1
+            iprange: 10.0.3.0/24
+            aux_addresses:
+              exclude: 10.0.3.0
+
+      

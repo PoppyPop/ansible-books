@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+  mediasort:
+    container_name: media-sort
+    image: chaudhryfaisal/media-sort
+    user: "999:1004"
+    environment:
+      - TZ=Europe/Paris
+    volumes:
+      - /datas:/datas
+    restart: unless-stopped
+    command: -a 93 -t /datas/Shares/Media/Series/ -m /datas/Shares/Media/Films/ --tv-template '{{ .Name }}/S{{ printf "%02d" .Season }}/{{ .Name }} S{{ printf "%02d" .Season }}E{{ printf "%02d" .Episode }}{{ if ne .ExtraEpisode -1 }}-{{ printf "%02d" .ExtraEpisode }}{{end}}.{{ .Ext }}' -r -s -w /datas/apps/aria2/dl/Ended/
+#  limit the log size to 1M to prevent your hard disk from running out of space.
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m

@@ -8,7 +8,7 @@ services:
         published: 5000
         protocol: tcp
     volumes:
-      - /opt/psacc:/config
+      - /datas/psacc:/config
     environment:
       - PSACC_OPTIONS=-r --web-conf -c
       

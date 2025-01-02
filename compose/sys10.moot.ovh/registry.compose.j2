@@ -6,7 +6,7 @@ services:
     ports:
       - "443:443"
     volumes:
-      - /data/registry:/var/lib/registry
+      - /datas/registry:/var/lib/registry
       - /etc/letsencrypt/live:/certs/live
       - /etc/letsencrypt/archive:/certs/archive
     environment:

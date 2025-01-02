@@ -9,9 +9,12 @@ all:
     ipa.moot.ovh:
 
   children:
-    cts:
+    dockernode:
       hosts:
         acc.moot.ovh:
+        sys11.moot.ovh:
+        sys12.moot.ovh:
+        test.moot.ovh:
       children:
         frigate:
           hosts:
@@ -19,11 +22,7 @@ all:
         dockerregistry:
           hosts:
             sys10.moot.ovh:
-        dockernode:
-          hosts:
-            sys11.moot.ovh:
-            sys12.moot.ovh:
-            sys13.moot.ovh:
+
     nas:
       hosts:
         test.moot.ovh:

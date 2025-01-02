@@ -1,0 +1,23 @@
+version: '3.7'
+services:
+  deluge:
+    image: ghcr.io/linuxserver/deluge
+    container_name: deluge
+    environment:
+      - PUID=999
+      - PGID=1004
+      - TZ=Europe/Paris
+      - UMASK_SET=007 #optional
+      #- DELUGE_LOGLEVEL=error #optional
+    hostname: deluge.moot.ovh
+    networks:
+      macvlan:
+        ipv4_address: 10.0.3.4
+    volumes:
+      - /datas/apps/deluge/config:/config
+      - /datas/apps/deluge/downloads:/downloads
+    restart: unless-stopped
+
+networks:
+  macvlan:
+    name: macvlan
