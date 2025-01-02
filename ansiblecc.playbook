@@ -1,6 +1,4 @@
 ---
-
-
 - hosts: ansiblecc
   become: yes
   tasks:
