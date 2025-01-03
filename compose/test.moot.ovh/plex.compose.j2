@@ -24,7 +24,7 @@ services:
   plextraktwatch:
     image: ghcr.io/taxel/plextraktsync
     volumes:
-      - /datas/apps/plextraktsync:/app/config
+      - /datas/apps/plex/plextraktsync:/app/config
     command: watch
     environment:
       - PUID=999
@@ -37,7 +37,7 @@ services:
     container_name: plextraktsync
     profiles: ["schedule"]
     volumes:
-      - /datas/apps/plextraktsync:/app/config
+      - /datas/apps/plex/plextraktsync:/app/config
     environment:
       - PUID=999
       - PGID=1004

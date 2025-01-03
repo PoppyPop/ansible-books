@@ -21,6 +21,28 @@
       - ansible
     
   tasks:
+    - name: Install NFS server
+      ansible.builtin.package:
+        name: nfs-kernel-server
+        state: present
+    - name: Install SMB server
+      ansible.builtin.package:
+        name: samba
+        state: present
+
+    - name: Add smb.conf
+      ansible.builtin.copy:
+        src: files/smb.conf
+        dest: /etc/samba/smb.conf
+
+    - name: Activate SMBD
+      ansible.builtin.systemd_service:
+        name: "smb"
+        enabled: true
+        state: "started"
+
+
+
     - name: "Create groups"
       ansible.builtin.group:
         name: "{{ item }}"
@@ -32,13 +54,23 @@
         update_password: "on_create"
         password: "{{ accountdefaultpwd }}"
         groups: "{{ media_group }}"
+        shell: /bin/bash
       with_items: "{{ users }}"
       register: accounts
-      
+
     - name: force change password
       command: "chage -d 0 {{ item.name }}"
       when: item.changed
       with_items: "{{ accounts.results }}"
+
+    - name: Fetch current smbpasswd users
+      command: /usr/bin/pdbedit -L
+      register: pdb_users
+
+    - name: Create smbuser
+      command: "/usr/bin/smbpasswd -n -a {{ item }}"
+      when: item not in pdb_users.stdout 
+      with_items: "{{ users }}"
       
     - name: "Add admins to group"
       ansible.builtin.user:
@@ -64,6 +96,7 @@
       delegate_to: localhost
       register: path_to_file_stat
       with_items: "{{ users }}"
+
     - name: "Add authorized keys"
       authorized_key:
         user: "{{ item.item }}"
@@ -85,25 +118,8 @@
         name: acl
         state: present
 
-    - name: Install NFS server
-      ansible.builtin.package:
-        name: nfs-common
-        state: present
-    - name: Install SMB server
-      ansible.builtin.package:
-        name: samba
-        state: present
-    - name: Activate SMBD
-      ansible.builtin.systemd_service:
-        name: "smb"
-        enabled: true
-        state: "started"
-        
-    - name: Add smb.conf
-      ansible.builtin.copy:
-        src: files/smb.conf
-        dest: /etc/samba/smb.conf
-        
+
+
     - name: Copy manage-share
       ansible.builtin.copy:
         src: files/manage-share.sh
