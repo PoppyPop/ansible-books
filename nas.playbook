@@ -65,6 +65,7 @@
 
     - name: Fetch current smbpasswd users
       command: /usr/bin/pdbedit -L
+      changed_when: false
       register: pdb_users
 
     - name: Create smbuser
