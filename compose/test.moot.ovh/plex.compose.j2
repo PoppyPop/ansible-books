@@ -26,6 +26,7 @@ services:
     volumes:
       - /datas/apps/plex/plextraktsync:/app/config
     command: watch
+    restart: unless-stopped
     environment:
       - PUID=999
       - PGID=1004
