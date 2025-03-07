@@ -2,6 +2,8 @@
 
 - hosts: pveservers
   become: yes
+  vars_files:
+    - secrets.yaml
   vars:
     - firewall_allowed_tcp_ports:
       - "22"

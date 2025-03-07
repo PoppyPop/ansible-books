@@ -2,7 +2,8 @@
 
 - hosts: dockerregistry
   become: yes
-
+  vars_files:
+    - secrets.yaml
   tasks:
     - name: Create folder - compose
       file:

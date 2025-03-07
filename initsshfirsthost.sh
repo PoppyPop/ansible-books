@@ -1,4 +1,4 @@
 #!/bin/bash
 #
 
-ansible-playbook -i hosts.yaml --extra-vars '@secrets.yaml' initssh.playbook
+ansible-playbook -i hosts.yaml initssh.playbook

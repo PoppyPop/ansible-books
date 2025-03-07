@@ -2,6 +2,8 @@
 
 - hosts: ipa.moot.ovh
   become: yes
+  vars_files:
+    - secrets.yaml
   tasks:
     - name: Install IPA       
       package: 

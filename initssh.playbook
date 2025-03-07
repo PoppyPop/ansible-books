@@ -2,6 +2,8 @@
 
 - hosts: all
   become: true
+  vars_files:
+    - secrets.yaml
   tasks:
     - name: Run the equivalent of "apt-get update" as a separate step
       apt:

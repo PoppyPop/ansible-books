@@ -1,7 +1,8 @@
 ---
 - hosts: dockernode
   become: yes
-
+  vars_files:
+    - secrets.yaml
   vars:
     certbot_auto_renew: true
     certbot_auto_renew_user: root
@@ -34,7 +35,7 @@
 
     - name: Certbot Template
       template:
-        src: "cloudflare/dnscloudflare.ini.j2"
+        src: "dnscloudflare.ini.j2"
         dest: "/etc/letsencrypt/dnscloudflare.ini"
         owner: root
         group: root

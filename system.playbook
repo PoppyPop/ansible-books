@@ -2,6 +2,8 @@
 
 - hosts: vms
   become: yes
+  vars_files:
+    - secrets.yaml
   roles:
     - sbaerlocher.qemu-guest-agent
   tasks:

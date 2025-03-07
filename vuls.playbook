@@ -2,6 +2,8 @@
 
 - hosts: ansiblecc
   become: yes
+  vars_files:
+    - secrets.yaml
   tasks:
     - name: Refresh vuls database       
       shell: ./update-all.sh

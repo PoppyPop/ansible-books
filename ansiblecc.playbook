@@ -1,6 +1,8 @@
 ---
 - hosts: ansiblecc
   become: yes
+  vars_files:
+    - secrets.yaml
   tasks:
     - name: Replace sftp by scp in ansible conf
       replace:

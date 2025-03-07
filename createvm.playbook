@@ -2,6 +2,8 @@
 
 - hosts: pveservers
   become: true
+  vars_files:
+    - secrets.yaml
   vars:
     - baseVmId: 9100
     - newVmName: "test"

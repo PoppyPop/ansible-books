@@ -2,6 +2,8 @@
 
 - hosts: pve2.moot.ovh
   become: true
+  vars_files:
+    - secrets.yaml
   vars:
     - newVmId: 9001
     - newVmName: "UbuntuServer20"
