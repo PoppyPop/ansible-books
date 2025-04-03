@@ -1,4 +1,4 @@
-version: '3.7'
+---
 services:
   deluge:
     image: ghcr.io/linuxserver/deluge
@@ -20,4 +20,4 @@ services:
 
 networks:
   macvlan:
-    name: macvlan
+    external: true

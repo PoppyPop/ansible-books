@@ -5,10 +5,28 @@
   vars_files:
     - secrets.yaml
   tasks:
+    - name: Set Version
+      set_fact:
+        webs_proxy_version: "1.0.4"
+
     - name: Build websocket-proxy image
       community.docker.docker_image:
         build:
           path: ./docker/websocket-proxy
+          pull: true
+          rm: true
+          nocache: true
         name: sys10.moot.ovh:5001/websocket-proxy
-        push: true
+        push: true 
+        tag: "{{ webs_proxy_version }}"
         source: build
+        # force_source: true
+      
+    - name: Add tag latest to image
+      community.docker.docker_image:
+        name: "sys10.moot.ovh:5001/websocket-proxy:{{ webs_proxy_version }}"
+        repository: sys10.moot.ovh:5001/websocket-proxy:latest
+      # As 'latest' usually already is present, we need to enable overwriting of existing tags:
+        force_tag: true
+        push: true
+        source: local

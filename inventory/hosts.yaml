@@ -25,7 +25,7 @@ all:
         nas:
           hosts:
             test.moot.ovh:
-            
+
     pveservers:
       hosts:
         pve1.moot.ovh:

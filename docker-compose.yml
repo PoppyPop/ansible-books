@@ -1,0 +1,41 @@
+---
+- name: Deploy docker-compose
+  hosts: dockerregistry
+  become: true
+  vars_files:
+    - secrets.yaml
+  tasks:
+    - name: Custom docker config
+      ansible.builtin.template:
+        src: daemon.json.j2
+        dest: /etc/docker/daemon.json
+        mode: "0644"
+      notify: Restart Docker
+
+    - name: Create folder - compose
+      ansible.builtin.file:
+        path: compose
+        state: directory
+        mode: "0775"
+
+    - name: Create folder - datas
+      ansible.builtin.file:
+        path: "/datas/apps"
+        state: directory
+        recurse: true
+
+    - name: Copy global compose files
+      ansible.builtin.include_tasks: tasks/copy-compose.yml
+      with_fileglob:
+        - compose/*.j2
+
+    - name: Copy host reserved docker-compose
+      ansible.builtin.include_tasks: tasks/copy-compose.yml
+      with_fileglob:
+        - compose/{{ inventory_hostname }}/*.j2
+
+  handlers:
+    - name: Restart Docker
+      ansible.builtin.service:
+        name: docker
+        state: restarted

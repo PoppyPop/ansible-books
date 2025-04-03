@@ -1,6 +1,8 @@
+---
 services:
   portainer:
     image: portainer/portainer-ce:latest
+    pull_policy: always
     ports:
       - 9443:9443
       - 8000:8000

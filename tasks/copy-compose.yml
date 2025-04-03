@@ -1,0 +1,64 @@
+---
+- name: Set compose_name
+  ansible.builtin.set_fact:
+    compose_name: "{{ item | basename | split('.') | first }}"
+
+- name: Ensures dir exists {{ compose_name }}
+  ansible.builtin.file:
+    path: "compose/{{ compose_name }}"
+    state: directory
+    mode: "0775"
+
+- name: Copy docker-compose.yml
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "compose/{{ compose_name }}/docker-compose.yml"
+    mode: "0644"
+  register: compose_modified
+
+- name: Create Dir
+  ansible.builtin.file:
+    path: "/datas/apps/{{ compose_name }}"
+    state: directory
+    # group: apps
+    mode: "0775"
+
+- name: Finding local app files
+  ansible.builtin.find:
+    paths: "compose-files/{{ compose_name }}"
+    patterns: "*.j2"
+    recurse: "yes"
+    file_type: "file"
+    hidden: "yes"
+  register: stat_result
+  delegate_to: localhost
+
+- name: Create apps subDir
+  ansible.builtin.file:
+    path: "/datas/apps/{{ item.path | regex_replace('^compose-files/', '') | dirname }}"
+    state: directory
+    # group: apps
+    mode: "0775"
+  with_items: "{{ stat_result.results | map(attribute='files') | flatten }}"
+  when: stat_result.matched > 0
+
+- name: Copy app files
+  ansible.builtin.template:
+    src: "{{ item.path }}"
+    dest: "/datas/apps/{{ item.path | regex_replace('^compose-files/', '') | regex_replace('.j2$', '') }}"
+    mode: "0644"
+  with_items: "{{ stat_result.results | map(attribute='files') | flatten }}"
+  when: stat_result.matched > 0
+
+- name: Deploy {{ compose_name }}
+  community.docker.docker_compose_v2:
+    project_src: "compose/{{ compose_name }}"
+  register: compose_deploy
+
+- name: Restat compose if compose_modified
+  community.docker.docker_compose_v2:
+    project_src: "compose/{{ compose_name }}"
+    state: restarted
+  tags:
+    - skip_ansible_lint
+  when: compose_modified is changed and compose_deploy is not changed
