@@ -1,21 +1,61 @@
-version: '3.7'
 services:
+  registry-ui:
+    image: joxit/docker-registry-ui:main
+    restart: unless-stopped
+    ports:
+      - 80:80
+    environment:
+      - REGISTRY_TITLE=Docker Registry UI
+      - DELETE_IMAGES=true
+      - SHOW_CONTENT_DIGEST=true
+      - SHOW_CATALOG_NB_TAGS=true
+      - CATALOG_MIN_BRANCHES=1
+      - CATALOG_MAX_BRANCHES=1
+      - TAGLIST_PAGE_SIZE=100
+      - REGISTRY_SECURED=false
+      - CATALOG_ELEMENTS_LIMIT=1000
+      - DEFAULT_REGISTRIES=https://sys10.moot.ovh:5000,https://sys10.moot.ovh:5001
+      - READ_ONLY_REGISTRIES=true
+    container_name: registry-ui
   dockerregistrymirror:
     container_name: docker-registry-mirror
     image: registry:2
     ports:
-      - "443:443"
+      - "5000:5000"
+      - "443:5000"
     volumes:
-      - /datas/registry:/var/lib/registry
+      - /datas/apps/registry/mirror:/var/lib/registry
       - /etc/letsencrypt/live:/certs/live
       - /etc/letsencrypt/archive:/certs/archive
     environment:
-      - TZ=Europe/Paris
-      - REGISTRY_PROXY_REMOTEURL=https://registry-1.docker.io
-      - REGISTRY_PROXY_USERNAME=poppypop
-      - REGISTRY_PROXY_PASSWORD="{{ docker_pass }}"
-      - REGISTRY_HTTP_ADDR=0.0.0.0:443
-      - REGISTRY_HTTP_TLS_CERTIFICATE=/certs/live/{{inventory_hostname}}/fullchain.pem
-      - REGISTRY_HTTP_TLS_KEY=/certs/live/{{inventory_hostname}}/privkey.pem
-      - REGISTRY_STORAGE_DELETE_ENABLED=true
+      REGISTRY_PROXY_REMOTEURL: 'https://registry-1.docker.io'
+      REGISTRY_PROXY_USERNAME: 'poppypop'
+      REGISTRY_PROXY_PASSWORD: "{{ docker_pass }}"
+      TZ: 'Europe/Paris'
+      REGISTRY_HTTP_TLS_CERTIFICATE: '/certs/live/{{inventory_hostname}}/fullchain.pem'
+      REGISTRY_HTTP_TLS_KEY: '/certs/live/{{inventory_hostname}}/privkey.pem'
+      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[http://sys10.moot.ovh]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
+    restart: unless-stopped
+  localregistry:
+    container_name: docker-registry
+    image: registry:2
+    ports:
+      - "5001:5000"
+    volumes:
+      - /datas/apps/registry/local:/var/lib/registry
+      - /etc/letsencrypt/live:/certs/live
+      - /etc/letsencrypt/archive:/certs/archive
+    environment:
+      TZ: 'Europe/Paris'
+      REGISTRY_HTTP_TLS_CERTIFICATE: '/certs/live/{{inventory_hostname}}/fullchain.pem'
+      REGISTRY_HTTP_TLS_KEY: '/certs/live/{{inventory_hostname}}/privkey.pem'
+      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[http://sys10.moot.ovh]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
     restart: unless-stopped

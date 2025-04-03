@@ -20,13 +20,13 @@
         path: compose/{{ item | basename | replace('.j2', '') | splitext | first }}
         state: directory
       with_fileglob:
-        - frigate/*.j2
+        - ./frigate.moot.ovh/*.j2
     - name: copy docker-compose.yml
       template:
         src: "{{ item }}"
         dest: compose/{{ item | basename | replace('.j2', '') | splitext | first }}/docker-compose.yaml
       with_fileglob:
-        - frigate/*.j2
+        - ./frigate.moot.ovh/*.j2
         
     - name: Create folder - storage
       file:

@@ -1,4 +1,3 @@
-version: "3"
 services:
   portainer:
     image: portainer/portainer-ce:latest
@@ -6,7 +5,7 @@ services:
       - 9443:9443
       - 8000:8000
     volumes:
-      - /datas/portainer:/data
+      - /datas/apps/portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
       - /etc/letsencrypt/live:/certs/live
       - /etc/letsencrypt/archive:/certs/archive

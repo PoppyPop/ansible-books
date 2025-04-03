@@ -1,6 +1,6 @@
 ---
 
-- hosts: nas
+- hosts: dockerregistry
   become: yes
   vars_files:
     - secrets.yaml
@@ -54,7 +54,7 @@
       ansible.builtin.file:
         path: "/datas/apps/{{ item.path | basename | splitext | first }}"
         state: directory
-        group: apps
+        #group: apps
         mode: 0775
       with_items: "{{ find_result.files }}"	 
 
@@ -73,7 +73,7 @@
       ansible.builtin.file:
         path: "/datas/apps/{{ item.path | regex_replace('^compose-files/', '') | dirname }}"
         state: directory
-        group: apps
+        #group: apps
         mode: 0775
       with_items: "{{ stat_result.results | map(attribute='files') | flatten }}"
 
@@ -83,10 +83,10 @@
         dest: "/datas/apps/{{ item.path | regex_replace('^compose-files/', '') | regex_replace('.j2$', '') }}"
       with_items: "{{ stat_result.results | map(attribute='files') | flatten }}"
 
-    # - name: Deploy compose
-    #   community.docker.docker_compose:
-    #     project_src: compose
-    #     project_name: "{{ item.path | basename | splitext | first }}"
-    #     pull: true
-    #     files: "{{ item.path | basename }}"
-    #   with_items: "{{ find_result.files }}"
+    - name: Deploy compose
+      community.docker.docker_compose:
+        project_src: compose
+        project_name: "{{ item.path | basename | splitext | first }}"
+        pull: true
+        files: "{{ item.path | basename }}"
+      with_items: "{{ find_result.files }}"

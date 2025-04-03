@@ -22,10 +22,10 @@ all:
         dockerregistry:
           hosts:
             sys10.moot.ovh:
-
-    nas:
-      hosts:
-        test.moot.ovh:
+        nas:
+          hosts:
+            test.moot.ovh:
+            
     pveservers:
       hosts:
         pve1.moot.ovh:
