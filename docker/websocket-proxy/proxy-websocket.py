@@ -66,10 +66,8 @@ if __name__ == '__main__':
 
     REMOTE_URL = args.remote_url
 
-async def main():
-    async with websockets.asyncio.server.serve(hello, args.host, args.port) as server:
-        await server.serve_forever()
+    print(f"Serving on {args.host}:{args.port}")
+    start_server = websockets.serve(hello, args.host, args.port)
 
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()

@@ -20,7 +20,7 @@
         push: true 
         tag: "{{ webs_proxy_version }}"
         source: build
-        # force_source: true
+        force_source: true
       
     - name: Add tag latest to image
       community.docker.docker_image:
