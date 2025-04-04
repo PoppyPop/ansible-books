@@ -1,5 +1,5 @@
 ---
-- name: Docker compose dow on {{ item }}
+- name: Docker compose down on {{ item }}
   community.docker.docker_compose_v2:
     project_src: "compose/{{ item }}"
     state: absent
