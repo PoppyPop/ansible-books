@@ -5,6 +5,7 @@
 import argparse
 import asyncio
 import websockets
+import traceback
 
 async def hello(websocket, path):
     '''Called whenever a new connection is made to the server'''

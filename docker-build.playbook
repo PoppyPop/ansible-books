@@ -7,7 +7,7 @@
   tasks:
     - name: Set Version
       set_fact:
-        webs_proxy_version: "1.0.4"
+        webs_proxy_version: "1.0.5"
 
     - name: Build websocket-proxy image
       community.docker.docker_image:
