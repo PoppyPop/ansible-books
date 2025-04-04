@@ -24,15 +24,52 @@
         state: directory
         recurse: true
 
+    - name: Find local compose files
+      ansible.builtin.find:
+        paths: compose
+        recurse: false
+        pattern: "*.j2"
+      register: local_compose
+      delegate_to: localhost
+
+    - name: Find host compose files
+      ansible.builtin.find:
+        paths: "{{ playbook_dir }}/compose/{{ inventory_hostname }}"
+        recurse: false
+        pattern: "*.j2"
+      register: host_compose
+      delegate_to: localhost
+
     - name: Copy global compose files
       ansible.builtin.include_tasks: tasks/copy-compose.yml
-      with_fileglob:
-        - compose/*.j2
+      loop: "{{ local_compose.files | map(attribute='path') | flatten }}"
 
     - name: Copy host reserved docker-compose
       ansible.builtin.include_tasks: tasks/copy-compose.yml
-      with_fileglob:
-        - compose/{{ inventory_hostname }}/*.j2
+      loop: "{{ host_compose.files | map(attribute='path') | flatten }}"
+
+    - name: Find deployed compose files
+      ansible.builtin.find:
+        paths: compose
+        recurse: false
+        file_type: directory
+      register: deployed_compose
+
+    - name: Clean deployed compose
+      ansible.builtin.set_fact:
+        proper_deployed_compose: "{{ deployed_compose.files | map(attribute='path') | map('basename') | flatten }}"
+
+    - name: Clean local compose files
+      ansible.builtin.set_fact:
+        proper_local_compose: "{{ local_compose.files | map(attribute='path') | map('basename') | map('regex_replace', '.compose.j2', '') | flatten }}"
+
+    - name: Clean host compose files
+      ansible.builtin.set_fact:
+        proper_host_compose: "{{ host_compose.files | map(attribute='path') | map('basename') | map('regex_replace', '.compose.j2', '') | flatten }}"
+
+    - name: Remove old compose files
+      ansible.builtin.include_tasks: tasks/remove-compose.yml
+      loop: "{{ proper_deployed_compose | difference(proper_local_compose) | difference(proper_host_compose) }}"
 
   handlers:
     - name: Restart Docker

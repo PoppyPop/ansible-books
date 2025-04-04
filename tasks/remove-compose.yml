@@ -1,0 +1,10 @@
+---
+- name: Docker compose dow on {{ item }}
+  community.docker.docker_compose_v2:
+    project_src: "compose/{{ item }}"
+    state: absent
+
+- name: Delete compose directory {{ item }}
+  ansible.builtin.file:
+    path: "compose/{{ item }}"
+    state: absent
