@@ -64,6 +64,9 @@
       ansible.builtin.command: "chage -d 0 {{ item.name }}"
       when: item.changed
       with_items: "{{ accounts.results }}"
+      changed_when: true
+      tags:
+        - skip_ansible_lint
 
     - name: Fetch current smbpasswd users
       ansible.builtin.command: /usr/bin/pdbedit -L
@@ -74,6 +77,7 @@
       ansible.builtin.command: "/usr/bin/smbpasswd -n -a {{ item }}"
       when: item not in pdb_users.stdout
       with_items: "{{ users }}"
+      changed_when: true
 
     - name: "Add admins to group"
       ansible.builtin.user:
