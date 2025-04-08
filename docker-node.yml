@@ -1,6 +1,7 @@
 ---
 - hosts: dockernode
-  become: yes
+  name: Setup Docker and Portainer
+  become: true
   vars_files:
     - secrets.yaml
   vars:
@@ -12,51 +13,54 @@
   roles:
     - geerlingguy.certbot
     - geerlingguy.docker
-  
+
   tasks:
     - name: Install the latest version of python3-docker
-      package:
-        name: 
+      ansible.builtin.package:
+        name:
           - python3-docker
           - docker-compose
-        state: latest
+        state: present
     - name: Install Certbot Cloudflare
-      package: 
+      ansible.builtin.package:
         name: python3-certbot-dns-cloudflare
         state: present
-        
+
     - name: Create Certbot folder - /etc/letsencrypt
-      file:
+      ansible.builtin.file:
         path: /etc/letsencrypt
         state: directory
         owner: root
         group: root
-        mode: 0700
+        mode: "0700"
 
     - name: Certbot Template
-      template:
+      ansible.builtin.template:
         src: "dnscloudflare.ini.j2"
         dest: "/etc/letsencrypt/dnscloudflare.ini"
         owner: root
         group: root
-        mode: 0600
+        mode: "0600"
 
     - name: Certbot | Generate Certificate
-      command: certbot certonly --non-interactive --agree-tos --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/dnscloudflare.ini -m {{certbot_mail}} -d {{inventory_hostname}}
+      ansible.builtin.command: >
+        certbot certonly --non-interactive --agree-tos --dns-cloudflare
+        --dns-cloudflare-credentials /etc/letsencrypt/dnscloudflare.ini
+        -m {{ certbot_mail }} -d {{ inventory_hostname }}
       args:
-        creates: /etc/letsencrypt/renewal/{{inventory_hostname}}.conf
-    
+        creates: "/etc/letsencrypt/renewal/{{ inventory_hostname }}.conf"
+
     - name: Create portainer folder
-      file:
+      ansible.builtin.file:
         path: /opt/portainer
         state: directory
         owner: root
         group: root
-        mode: 0700
-        recurse: yes
+        mode: "0700"
+        recurse: true
 
     - name: Launch portainer agent
-      docker_container:
+      community.docker.docker_container:
         name: portainer-agent
         image: portainer/agent
         state: started
