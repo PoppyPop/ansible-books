@@ -1,0 +1,23 @@
+---
+- name: Deploy netdev {{ macvlan_iface }}
+  ansible.builtin.template:
+    src: macvlan.netdev.j2
+    dest: "/etc/systemd/network/20-{{ macvlan_iface }}.netdev"
+    mode: '0644'
+  notify: Restart networkd
+
+- name: Deploy network {{ macvlan_iface }}
+  ansible.builtin.template:
+    src: macvlan.network.j2
+    dest: "/etc/systemd/network/25-{{ macvlan_iface }}.network"
+    mode: '0644'
+  notify: Restart networkd
+
+- name: Add MACVLAN to parent interface config
+  ansible.builtin.lineinfile:
+    path: "/etc/systemd/network/{{ parent_iface }}.network"
+    line: "MACVLAN={{ macvlan_iface }}"
+    create: true
+    insertafter: EOF
+    mode: '0644'
+...
