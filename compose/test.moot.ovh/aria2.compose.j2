@@ -53,7 +53,7 @@ services:
     volumes:
       - /datas/apps/aria2/dl:/downloads
     environment:
-      - SERVER=http://datas.moot.ovh
+      - SERVER=http://{{inventory_hostname}}
       - SECRET=Secret
       - DOWNLOADDIR=/downloads/downloads
     logging:

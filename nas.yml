@@ -185,3 +185,8 @@
             aux_addresses:
               exclude: 10.0.3.0
               datas: 10.0.3.254
+
+    - name: Create traefik network
+      community.docker.docker_network:
+        name: traefik
+        driver: bridge

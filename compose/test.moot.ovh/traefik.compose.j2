@@ -1,0 +1,73 @@
+services:
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    restart: always
+
+    command:
+      # Entrypoints HTTP + HTTPS
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      
+      # Redirection HTTP → HTTPS
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+
+      # HTTP/3 (QUIC)
+      - "--entrypoints.websecure.http3=true"
+
+      # TLS & options
+      - "--entrypoints.websecure.http.tls=true"
+      - "--entrypoints.websecure.http.tls.options=default"
+
+      # Providers
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/dynamic"
+      - "--providers.file.watch=true"
+
+      # Dashboard
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
+
+      # Logs (optionnel)
+      - "--log.level=INFO"
+      - "--accesslog=true"
+
+    ports:
+      - "80:80"
+      - "443:443/tcp"
+      - "443:443/udp"
+
+    volumes:
+      - /datas/apps/traefik/dynamic:/dynamic:ro
+      - /etc/letsencrypt:/certs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    networks:
+      - traefik
+
+    labels:
+      - "traefik.enable=true"
+
+      # Router dashboard
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.{{inventory_hostname}}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.tls=true"
+
+  whoami:
+    image: traefik/whoami
+    container_name: whoami
+    restart: always
+    networks:
+      - traefik
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.{{inventory_hostname}}`)"
+
+networks:
+  traefik:
+    external: true
+
+

@@ -1,0 +1,19 @@
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      maxVersion: VersionTLS13
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      alpnProtocols:
+        - http/1.1
+        - h2        # HTTP/2
+        - h3        # HTTP/3 via QUIC
+      curvePreferences:
+        - CurveP256
+        - CurveP384
+
+  certificates:
+    - certFile: "/certs/live/{{inventory_hostname}}/fullchain.pem"
+      keyFile: "/certs/live/{{inventory_hostname}}/privkey.pem"
