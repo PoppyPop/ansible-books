@@ -1,0 +1,34 @@
+---
+- name: Install NAS Arr
+  hosts: nas
+  become: true
+  vars_files:
+    - secrets.yaml
+
+  vars:
+    dls_base: /datas/dls
+
+    dls_owner: "media"
+    dls_group: "media"
+
+    dls_directories:
+      - "{{ dls_base }}/media/movies"
+      - "{{ dls_base }}/media/series"
+
+      - "{{ dls_base }}/bt/movies"
+      - "{{ dls_base }}/bt/series"
+
+      - "{{ dls_base }}/ddl"
+
+      - "{{ dls_base }}/usenet/movies"
+      - "{{ dls_base }}/usenet/series"
+
+  tasks:
+    - name: Create DLS directory structure
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+        owner: "{{ dls_owner }}"
+        group: "{{ dls_group }}"
+      loop: "{{ dls_directories }}"

@@ -7,21 +7,24 @@ all:
       ansible_user: root
       ansible_private_key_file: ~/.ssh/poppy
    hosts:
-      pve1.moot.ovh:
-         ansible_host: 10.0.1.1
-      ipa.moot.ovh:
-         ansible_host: 10.0.1.101
-      pve2.moot.ovh:
-         ansible_host: 10.0.2.1
-      sys10.moot.ovh:
-         ansible_host: 10.0.1.110
-      sys11.moot.ovh:
-         ansible_host: 10.0.1.111
-      sys12.moot.ovh:
-         ansible_host: 10.0.2.109
-      frigate.moot.ovh:
-         ansible_host: 10.0.1.108
-      acc.moot.ovh:
-         ansible_host: 10.0.1.100
-      test.moot.ovh:
-         ansible_host: 10.0.2.105
+      # pve1.moot.ovh:
+      #    ansible_host: 10.0.1.1
+      # ipa.moot.ovh:
+      #    ansible_host: 10.0.1.101
+      # pve2.moot.ovh:
+      #    ansible_host: 10.0.2.1
+      # sys10.moot.ovh:
+      #    ansible_host: 10.0.1.110
+      # sys11.moot.ovh:
+      #    ansible_host: 10.0.1.111
+      # sys12.moot.ovh:
+      #    ansible_host: 10.0.2.109
+      # frigate.moot.ovh:
+      #    ansible_host: 10.0.1.108
+      # acc.moot.ovh:
+      #    ansible_host: 10.0.1.100
+      # test.moot.ovh:
+      #    ansible_host: 10.0.2.105
+      datas.moot.ovh:
+         ansible_host: 10.0.2.104
+         ansible_private_key_file: ~/.ssh/ansiblekey

@@ -1,8 +1,6 @@
 Path:
 
 /datas/dls/
-  ├── games
-  ├── others
   ├── media # Final library
   | ├── movies
   | └── series
@@ -12,8 +10,10 @@ Path:
   ├── ddl # For automated-dl
   | └── <rep with name of file/archive>
   └── usenet
-    ├── movies
-    └── series 
+  | ├── movies
+  | └── series 
+  ├── games
+  └── others
 
 /datas/photos
 
