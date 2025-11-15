@@ -2,24 +2,24 @@
 - name: Read /etc/exports File
   ansible.builtin.slurp:
     path: /etc/exports
-  register: exports_raw
+  register: share_manager_exports_raw
 
 - name: Parse Existing NFS Export Lines
   ansible.builtin.set_fact:
-    nfs_existing_lines: >-
+    share_manager_nfs_existing_lines: >-
       {{
-        (exports_raw.content | b64decode).split('\n')
+        (share_manager_exports_raw.content | b64decode).split('\n')
         | select('match', '^/')
         | list
       }}
 
 - name: Build Expected NFS Export Lines
   ansible.builtin.set_fact:
-    nfs_expected_lines: >-
+    share_manager_nfs_expected_lines: >-
       {{
-        shares_normalized
+        share_manager_shares_normalized
         | map(attribute='path')
-        | map('regex_replace', '^(.*)$', '\\1 ' ~ nfs_default_options)
+        | map('regex_replace', '^(.*)$', '\\1 ' ~ share_manager_nfs_default_options)
         | list
       }}
 
@@ -28,6 +28,6 @@
     path: /etc/exports
     state: absent
     regexp: "^{{ item | regex_escape }}$"
-  loop: "{{ nfs_existing_lines }}"
-  when: item not in nfs_expected_lines
+  loop: "{{ share_manager_nfs_existing_lines }}"
+  when: item not in share_manager_nfs_expected_lines
   notify: Restart NFS

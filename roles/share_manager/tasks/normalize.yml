@@ -1,12 +1,12 @@
 ---
 - name: Normalize share item fields
   ansible.builtin.set_fact:
-    shares_normalized: >-
-      {{ shares_normalized | default([]) +
+    share_manager_shares_normalized: >-
+      {{ share_manager_shares_normalized | default([]) +
          [ item | combine({
             'path': item.path,
-            'extra_group': item.extra_group | default(share_default_extra_group),
-            'extra_permissions': item.extra_permissions | default(share_default_extra_permissions),
+            'extra_group': item.extra_group | default(share_manager_share_default_extra_group),
+            'extra_permissions': item.extra_permissions | default(share_manager_share_default_extra_permissions),
             'comment': item.comment | default(omit),
             'options': item.options | default(omit),
             'name':
@@ -21,4 +21,4 @@
             )
          }) ]
       }}
-  loop: "{{ shares }}"
+  loop: "{{ share_manager_shares }}"

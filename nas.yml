@@ -1,6 +1,6 @@
 ---
-- hosts: nas
-  name: Install NAS server
+- name: Install NAS server
+  hosts: nas
   become: true
   vars_files:
     - secrets.yaml
@@ -25,10 +25,10 @@
   roles:
     - role: macvlan_shim
       vars:
-        parent_iface: eth0
-        macvlan_iface: macvlan-shim
-        macvlan_ip: 10.0.3.254/32
-        macvlan_route: 10.0.3.0/24
+        macvlan_shim_parent_iface: eth0
+        macvlan_shim_iface: macvlan-shim
+        macvlan_shim_ip: 10.0.3.254/32
+        macvlan_shim_route: 10.0.3.0/24
 
   tasks:
     - name: Install NFS server

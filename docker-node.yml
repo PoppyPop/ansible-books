@@ -1,6 +1,6 @@
 ---
-- hosts: dockernode
-  name: Setup Docker and Portainer
+- name: Setup Docker and Portainer
+  hosts: dockernode
   become: true
   vars_files:
     - secrets.yaml

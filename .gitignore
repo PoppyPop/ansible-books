@@ -1,1 +1,3 @@
 vaultpass.key
+.venv/
+.ansible/

@@ -8,7 +8,7 @@
     permissions: rwx
     state: present
     recursive: true
-  loop: "{{ shares_normalized }}"
+  loop: "{{ share_manager_shares_normalized }}"
 
 - name: Ensure default ACLs for admins
   ansible.posix.acl:
@@ -18,7 +18,7 @@
     permissions: rwx
     state: present
     default: true
-  loop: "{{ shares_normalized }}"
+  loop: "{{ share_manager_shares_normalized }}"
 
 # ACL pour groupe personnalisé
 - name: Ensure ACLs for extra group (recursive)
@@ -29,7 +29,7 @@
     permissions: "{{ item.extra_permissions }}"
     state: present
     recursive: true
-  loop: "{{ shares_normalized }}"
+  loop: "{{ share_manager_shares_normalized }}"
 
 - name: Ensure default ACLs for extra group
   ansible.posix.acl:
@@ -39,4 +39,4 @@
     permissions: "{{ item.extra_permissions }}"
     state: present
     default: true
-  loop: "{{ shares_normalized }}"
+  loop: "{{ share_manager_shares_normalized }}"

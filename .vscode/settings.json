@@ -1,5 +1,4 @@
 {
-    "ansible.python.interpreterPath": "/usr/bin/python3",
     "files.associations": {
         "**/defaults/**/*.yml": "jinja-yaml",
         "**/group_vars/**/*": "jinja-yaml",
@@ -14,5 +13,11 @@
         "**/ansible/**/inventory": "ini",
         "ansible.cfg": "ini",
         "**/*.playbook": "ansible",
-    }
+    },
+
+    // 3. Activation de l'analyse
+    "ansible.validation.enabled": true,
+
+    "ansible.python.activationScript": ".venv/bin/activate",
+    "ansible.python.interpreterPath": "/root/ansible-books/.venv/bin/python",
 }

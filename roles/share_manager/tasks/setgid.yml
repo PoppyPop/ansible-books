@@ -4,5 +4,5 @@
     path: "{{ item.path }}"
     mode: "u=rwx,g=rwxs,o=rx"
     state: directory
-  loop: "{{ shares_normalized }}"
-  when: share_enforce_setgid
+  loop: "{{ share_manager_shares_normalized }}"
+  when: share_manager_share_enforce_setgid

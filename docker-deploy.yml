@@ -62,4 +62,4 @@
 
     - name: Remove old compose files
       ansible.builtin.include_tasks: tasks/remove-compose.yml
-      loop: "{{ proper_deployed_compose | difference(proper_local_compose) | difference(proper_host_compose) }}"Z
+      loop: "{{ proper_deployed_compose | difference(proper_local_compose) | difference(proper_host_compose) }}"

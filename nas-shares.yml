@@ -1,17 +1,16 @@
 ---
-- hosts: nas
-  name: Install NAS Shares
+- name: Install NAS Shares
+  hosts: nas
   become: true
   vars_files:
     - secrets.yaml
-  
+
   tasks:
     - name: Import shares role
       ansible.builtin.import_role:
         name: share_manager
       vars:
-        shares:
+        share_manager_shares:
           - path: /datas/dls
           - path: /datas/photos
           - path: /datas/pcloud
-          

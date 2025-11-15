@@ -2,7 +2,7 @@
 - name: Ensure NFS Export Exists
   ansible.builtin.lineinfile:
     path: /etc/exports
-    line: "{{ item.path }} {{ nfs_default_options }}"
+    line: "{{ item.path }} {{ share_manager_nfs_default_options }}"
     state: present
-  loop: "{{ shares_normalized }}"
+  loop: "{{ share_manager_shares_normalized }}"
   notify: Restart NFS

@@ -1,7 +1,7 @@
 # Variables par défaut pour le rôle macvlan_shim
 
-parent_iface: eth0
-macvlan_iface: macvlan-shim
-macvlan_mode: bridge
-macvlan_ip: 10.0.3.254/32
-macvlan_route: 10.0.3.0/24
+macvlan_shim_parent_iface: eth0
+macvlan_shim_iface: macvlan-shim
+macvlan_shim_mode: bridge
+macvlan_shim_ip: 10.0.3.254/32
+macvlan_shim_route: 10.0.3.0/24
