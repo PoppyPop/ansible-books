@@ -14,3 +14,11 @@
           - path: /datas/dls
           - path: /datas/photos
           - path: /datas/pcloud
+
+    - name: Create usershares directory
+      ansible.builtin.file:
+        path: "/datas/usershares"
+        state: directory
+        mode: "0755"
+        owner: "root"
+        group: "root"

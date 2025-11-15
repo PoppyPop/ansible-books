@@ -1,6 +1,8 @@
----
+--- # noqa: run-once[play]
 - name: Install NAS Arr
-  hosts: nas
+  hosts: nas, datas.moot.ovh
+  strategy: free
+  serial: 2
   become: true
   vars_files:
     - secrets.yaml
@@ -14,14 +16,19 @@
     dls_directories:
       - "{{ dls_base }}/media/movies"
       - "{{ dls_base }}/media/series"
+      - "{{ dls_base }}/media/others"
 
       - "{{ dls_base }}/bt/movies"
       - "{{ dls_base }}/bt/series"
 
       - "{{ dls_base }}/ddl"
+      - "{{ dls_base }}/ddl/downloads"
 
       - "{{ dls_base }}/usenet/movies"
       - "{{ dls_base }}/usenet/series"
+
+      - "{{ dls_base }}/games"
+      - "{{ dls_base }}/others"
 
   tasks:
     - name: Create DLS directory structure
