@@ -5,13 +5,6 @@
   vars_files:
     - secrets.yaml
   tasks:
-    - name: Custom docker config
-      ansible.builtin.template:
-        src: daemon.json.j2
-        dest: /etc/docker/daemon.json
-        mode: "0644"
-      notify: Restart Docker
-
     - name: Create folder - compose
       ansible.builtin.file:
         path: compose
@@ -69,10 +62,4 @@
 
     - name: Remove old compose files
       ansible.builtin.include_tasks: tasks/remove-compose.yml
-      loop: "{{ proper_deployed_compose | difference(proper_local_compose) | difference(proper_host_compose) }}"
-
-  handlers:
-    - name: Restart Docker
-      ansible.builtin.service:
-        name: docker
-        state: restarted
+      loop: "{{ proper_deployed_compose | difference(proper_local_compose) | difference(proper_host_compose) }}"Z

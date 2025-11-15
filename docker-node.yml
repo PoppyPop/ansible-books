@@ -22,6 +22,7 @@
           - python3-docker
           - docker-compose
         state: present
+
     - name: Install Certbot Cloudflare
       ansible.builtin.package:
         name: python3-certbot-dns-cloudflare
@@ -47,27 +48,66 @@
       ansible.builtin.command: >
         certbot certonly --non-interactive --agree-tos --dns-cloudflare
         --dns-cloudflare-credentials /etc/letsencrypt/dnscloudflare.ini
-        -m {{ certbot_mail }} -d {{ inventory_hostname }}
+        -m {{ certbot_mail }} -d {{ inventory_hostname }} -d *.
+        {{ inventory_hostname }}
       args:
         creates: "/etc/letsencrypt/renewal/{{ inventory_hostname }}.conf"
 
+    # Docker infra nodes
+
     - name: Create portainer folder
       ansible.builtin.file:
-        path: /opt/portainer
+        path: /datas/apps/portainer
         state: directory
         owner: root
         group: root
         mode: "0700"
         recurse: true
+      when: "'infra' in group_names"
+
+    - name: Launch portainer Server
+      community.docker.docker_container:
+        name: portainer
+        image: portainer/portainer-ce
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "8000:8000"
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.portainer.rule=Host(`portainer.moot.ovh`)"
+        volumes:
+          - /datas/apps/portainer:/data
+          - /var/run/docker.sock:/var/run/docker.sock
+      when: "'infra' in group_names"
+
+    # docker worker nodes
+
+    - name: Custom docker config
+      ansible.builtin.template:
+        src: daemon.json.j2
+        dest: /etc/docker/daemon.json
+        mode: "0644"
+      notify: Restart Docker
+      when: "'infra' not in group_names"
 
     - name: Launch portainer agent
       community.docker.docker_container:
         name: portainer-agent
         image: portainer/agent
         state: started
-        restart_policy: always
+        restart_policy: unless-stopped
         ports:
           - "9001:9001"
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
-          - /opt/portainer:/data
+          - /:/host
+          - /var/lib/docker/volumes:/var/lib/docker/volumes
+
+      when: "'infra' not in group_names"
+
+  handlers:
+    - name: Restart Docker
+      ansible.builtin.service:
+        name: docker
+        state: restarted

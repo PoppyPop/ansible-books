@@ -12,11 +12,13 @@ all:
     dockernode:
       hosts:
         acc.moot.ovh:
-        sys10.moot.ovh:
         sys11.moot.ovh:
         sys12.moot.ovh:
         frigate.moot.ovh:
       children:
+        infra:
+          hosts:
+            sys10.moot.ovh:
         nas:
           hosts:
             test.moot.ovh:
