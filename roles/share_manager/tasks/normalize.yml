@@ -1,0 +1,24 @@
+---
+- name: Normalize share item fields
+  ansible.builtin.set_fact:
+    shares_normalized: >-
+      {{ shares_normalized | default([]) +
+         [ item | combine({
+            'path': item.path,
+            'extra_group': item.extra_group | default(share_default_extra_group),
+            'extra_permissions': item.extra_permissions | default(share_default_extra_permissions),
+            'comment': item.comment | default(omit),
+            'options': item.options | default(omit),
+            'name':
+            (
+               (item.name if item.name is defined else (item.path | basename))
+               | lower
+               | regex_replace('[^a-z0-9_-]', '_')
+               | regex_replace('^[0-9]', 'share_\\0')
+               | regex_replace('_+', '_')
+               | regex_replace('_$', '')
+               | regex_replace('^$', 'share_default')
+            )
+         }) ]
+      }}
+  loop: "{{ shares }}"

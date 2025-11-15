@@ -1,0 +1,16 @@
+---
+- name: Fail if duplicate share names exist
+  ansible.builtin.fail:
+    msg: "Duplicate share names detected: {{ shares_normalized | map(attribute='name') | list }}"
+  when: >
+    shares_normalized | map(attribute='name') | list
+    | difference(shares_normalized | map(attribute='name') | list | unique)
+    | length > 0
+
+- name: Fail if duplicate share paths exist
+  ansible.builtin.fail:
+    msg: "Duplicate share paths detected: {{ shares_normalized | map(attribute='path') | list }}"
+  when: >
+    shares_normalized | map(attribute='path') | list
+    | difference(shares_normalized | map(attribute='path') | list | unique)
+    | length > 0

@@ -1,0 +1,33 @@
+---
+- name: List Existing SMB Share Files
+  ansible.builtin.find:
+    paths: "{{ smb_shares_dir }}"
+    patterns: "*.conf"
+  register: smb_existing_files
+
+- name: Build Expected SMB Share File List
+  ansible.builtin.set_fact:
+    smb_expected_files: >-
+      {{
+        shares_normalized
+        | map(attribute='name')
+        | map('regex_replace', '(^.*$)', smb_shares_dir ~ '/\1.conf') 
+        | list
+      }}
+
+- name: Remove Obsolete SMB Share Files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ smb_existing_files.files }}"
+  when: item.path not in smb_expected_files
+  notify: Restart Samba
+
+- name: Remove Obsolete SMB Includes From smb.conf
+  ansible.builtin.lineinfile:
+    path: "{{ smb_main_config }}"
+    state: absent
+    regexp: "^include = {{ item.path | regex_escape }}$"
+  loop: "{{ smb_existing_files.files }}"
+  when: item.path not in smb_expected_files
+  notify: Restart Samba

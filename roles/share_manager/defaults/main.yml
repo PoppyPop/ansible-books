@@ -1,0 +1,21 @@
+---
+# Liste des partages : un SMB + un export NFS seront créés automatiquement
+shares: []
+
+# Options NFS imposées
+nfs_default_options: "10.0.0.0/20(rw,no_subtree_check,anongid=513,async,anonuid=11001)"
+
+# Répertoire pour fichiers SMB
+smb_shares_dir: /etc/samba/shares.d
+
+# Chemin du smb.conf
+smb_main_config: /etc/samba/smb.conf
+
+# Groupe ACL supplémentaire par défaut
+share_default_extra_group: "media"
+share_default_extra_permissions: "rwx"
+
+share_enforce_umask: true
+share_umask_value: "0002"
+
+share_enforce_setgid: true

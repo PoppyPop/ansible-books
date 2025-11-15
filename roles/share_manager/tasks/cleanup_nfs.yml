@@ -1,0 +1,33 @@
+---
+- name: Read /etc/exports File
+  ansible.builtin.slurp:
+    path: /etc/exports
+  register: exports_raw
+
+- name: Parse Existing NFS Export Lines
+  ansible.builtin.set_fact:
+    nfs_existing_lines: >-
+      {{
+        (exports_raw.content | b64decode).split('\n')
+        | select('match', '^/')
+        | list
+      }}
+
+- name: Build Expected NFS Export Lines
+  ansible.builtin.set_fact:
+    nfs_expected_lines: >-
+      {{
+        shares_normalized
+        | map(attribute='path')
+        | map('regex_replace', '^(.*)$', '\\1 ' ~ nfs_default_options)
+        | list
+      }}
+
+- name: Remove Obsolete NFS Export Lines
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    state: absent
+    regexp: "^{{ item | regex_escape }}$"
+  loop: "{{ nfs_existing_lines }}"
+  when: item not in nfs_expected_lines
+  notify: Restart NFS

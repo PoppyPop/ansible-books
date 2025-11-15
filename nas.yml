@@ -150,15 +150,9 @@
         state: directory
         mode: '0775'
 
-    - name: Create /datas/Shares
+    - name: Create /datas/usershare
       ansible.builtin.file:
-        path: /datas/Shares
-        state: directory
-        mode: '0755'
-
-    - name: Create /datas/Shares/usershare
-      ansible.builtin.file:
-        path: /datas/Shares/usershare
+        path: /datas/usershare
         state: directory
         mode: '0775'
 

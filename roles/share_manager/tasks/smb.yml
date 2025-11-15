@@ -1,0 +1,25 @@
+---
+- name: Ensure SMB Share Directory Exists
+  ansible.builtin.file:
+    path: "{{ smb_shares_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Create SMB Share Config Files
+  ansible.builtin.template:
+    src: smb-share.conf.j2
+    dest: "{{ smb_shares_dir }}/{{ item.name }}.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ shares_normalized }}"
+  notify: Restart Samba
+
+- name: Add SMB Include To smb.conf
+  ansible.builtin.lineinfile:
+    path: "{{ smb_main_config }}"
+    insertafter: EOF
+    line: "include = {{ smb_shares_dir }}/{{ item.name }}.conf"
+    state: present
+  loop: "{{ shares_normalized }}"
+  notify: Restart Samba

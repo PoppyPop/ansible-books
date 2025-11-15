@@ -1,0 +1,10 @@
+---
+- name: Restart Samba
+  ansible.builtin.service:
+    name: smb
+    state: restarted
+
+- name: Restart NFS
+  ansible.builtin.service:
+    name: nfs-server
+    state: restarted

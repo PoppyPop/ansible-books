@@ -1,0 +1,42 @@
+---
+# ACL obligatoire pour admins
+- name: Ensure ACLs for admins (recursive)
+  ansible.posix.acl:
+    path: "{{ item.path }}"
+    entity: admins
+    etype: group
+    permissions: rwx
+    state: present
+    recursive: true
+  loop: "{{ shares_normalized }}"
+
+- name: Ensure default ACLs for admins
+  ansible.posix.acl:
+    path: "{{ item.path }}"
+    entity: admins
+    etype: group
+    permissions: rwx
+    state: present
+    default: true
+  loop: "{{ shares_normalized }}"
+
+# ACL pour groupe personnalisé
+- name: Ensure ACLs for extra group (recursive)
+  ansible.posix.acl:
+    path: "{{ item.path }}"
+    entity: "{{ item.extra_group }}"
+    etype: group
+    permissions: "{{ item.extra_permissions }}"
+    state: present
+    recursive: true
+  loop: "{{ shares_normalized }}"
+
+- name: Ensure default ACLs for extra group
+  ansible.posix.acl:
+    path: "{{ item.path }}"
+    entity: "{{ item.extra_group }}"
+    etype: group
+    permissions: "{{ item.extra_permissions }}"
+    state: present
+    default: true
+  loop: "{{ shares_normalized }}"

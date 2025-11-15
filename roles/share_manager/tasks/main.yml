@@ -1,0 +1,24 @@
+---
+- name: Normalize Share Names
+  ansible.builtin.include_tasks: normalize.yml
+
+- name: Check for duplicate share definitions
+  ansible.builtin.include_tasks: check_duplicates.yml
+
+- name: Enforce setgid on share directories
+  ansible.builtin.include_tasks: setgid.yml
+
+- name: Include ACL tasks
+  ansible.builtin.include_tasks: acls.yml
+
+- name: Manage SMB Shares
+  ansible.builtin.include_tasks: smb.yml
+
+- name: Clean Up SMB Shares
+  ansible.builtin.include_tasks: cleanup_smb.yml
+
+- name: Manage NFS Exports
+  ansible.builtin.include_tasks: nfs.yml
+
+- name: Clean Up NFS Exports
+  ansible.builtin.include_tasks: cleanup_nfs.yml

@@ -1,0 +1,15 @@
+[{{ item.name }}]
+path = {{ item.path }}
+
+writeable = yes
+browseable = yes
+
+{% if item.comment is defined %}
+comment = {{ item.comment }}
+{% endif %}
+
+{% if item.options is defined %}
+{% for opt in item.options %}
+{{ opt }}
+{% endfor %}
+{% endif %}

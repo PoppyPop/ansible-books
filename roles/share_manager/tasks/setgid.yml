@@ -1,0 +1,8 @@
+---
+- name: Set setgid bit on shared directory
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    mode: "u=rwx,g=rwxs,o=rx"
+    state: directory
+  loop: "{{ shares_normalized }}"
+  when: share_enforce_setgid
