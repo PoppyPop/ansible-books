@@ -1,11 +1,11 @@
----
 services:
   aria2-pro:
     container_name: aria2-pro
     image: p3terx/aria2-pro
+    #user: "10010:10008"
     environment:
-      - PUID=999
-      - PGID=1004
+      - PUID=10010
+      - PGID=10008
       - UMASK_SET=007
       - RPC_SECRET=Secret
       - RPC_PORT=6800
@@ -17,7 +17,7 @@ services:
       - TZ=Europe/Paris
     volumes:
       - /datas/apps/aria2/aria2-config:/config
-      - /datas/apps/aria2/dl/downloads:/downloads
+      - /datas/dls/ddl/downloads:/downloads
 # If you use host network mode, then no port mapping is required.
 # This is your best choice when using IPv6.
     network_mode: host
@@ -46,17 +46,21 @@ services:
  
   automated-dl:
     container_name: automated-dl
-    image: poppypop/automated-dl
-    user: "999:1004"
+    image: poppypop/automated-dl:latest
+    user: "10010:10008"
     network_mode: bridge
     restart: unless-stopped
     volumes:
-      - /datas/apps/aria2/dl:/downloads
+      - /datas/dls/ddl:/datas/ddl
     environment:
       - SERVER=http://{{inventory_hostname}}
       - SECRET=Secret
-      - DOWNLOADDIR=/downloads/downloads
+      - DOWNLOADDIR=/datas/ddl/downloads
+      - EXTRACTDIR=/datas/ddl/extract
+      - ENDEDDIR=/datas/ddl/ended
+      - SONARR_URL=http://{{inventory_hostname}}:8989
+      - SONARR_API_KEY=TODO
     logging:
       driver: json-file
       options:
-        max-size: 1m
+        max-size: 1m 
