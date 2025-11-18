@@ -9,7 +9,7 @@ if [[ ! -f "$REQ_FILE" ]]; then
 fi
 
 echo "Updating Ansible Galaxy roles and collections..."
-ansible-galaxy install -r "$REQ_FILE" --force
-ansible-galaxy collection install -r "$REQ_FILE" --force
+ansible-galaxy install -r "$REQ_FILE" #--force
+ansible-galaxy collection install -r "$REQ_FILE" #--force
 
 echo "Done!"

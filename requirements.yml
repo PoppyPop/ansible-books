@@ -22,3 +22,6 @@ collections:
   - name: community.general
   - name: ansible.posix
   - name: devsec.hardening
+  - name: devopsarr.sonarr
+  - name: devopsarr.prowlarr
+  - name: devopsarr.radarr
