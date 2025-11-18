@@ -5,20 +5,46 @@
   vars_files:
     - secrets.yaml
   vars:
+    # Centralized group definitions with GIDs
+    groups_config:
+      - name: admins
+        gid: 10000
+      - name: apps
+        gid: 10011
+      - name: media
+        gid: 10008
+
+    # Centralized user definitions with UIDs
+    users_config:
+      - name: poppy
+        uid: 10001
+        groups:
+          - admins
+          - media
+        is_admin: true
+        is_system: false
+      - name: cookiesochocola
+        uid: 10012
+        groups:
+          - media
+        is_admin: false
+        is_system: false
+      - name: media
+        uid: 10010
+        groups:
+          - media
+          - apps
+        is_admin: false
+        is_system: true
+
+    # Legacy references (computed from config)
     admin_group: admins
     apps_group: apps
     media_group: media
-    localgroups:
-      - admins
-      - apps
-      - media
-    users:
-      - poppy
-      - cookiesochocola
-    adminusers:
-      - poppy
-    sysusers:
-      - media
+    localgroups: "{{ groups_config | map(attribute='name') | list }}"
+    users: "{{ users_config | rejectattr('is_system') | map(attribute='name') | list }}"
+    adminusers: "{{ users_config | selectattr('is_admin') | map(attribute='name') | list }}"
+    sysusers: "{{ users_config | selectattr('is_system') | map(attribute='name') | list }}"
     docker_users:
       - ansible
 
@@ -54,23 +80,36 @@
 
     - name: "Create groups"
       ansible.builtin.group:
-        name: "{{ item }}"
-      with_items: "{{ localgroups }}"
+        name: "{{ item.name }}"
+        gid: "{{ item.gid }}"
+      loop: "{{ groups_config }}"
+
+    - name: Gather existing local users
+      ansible.builtin.getent:
+        database: passwd
+      register: passwd_db
+
+    - name: Build existing usernames list
+      ansible.builtin.set_fact:
+        existing_usernames: "{{ passwd_db.ansible_facts.getent_passwd.keys() | list if passwd_db.ansible_facts.getent_passwd is defined else [] }}"
 
     - name: "Create user accounts"
       ansible.builtin.user:
-        name: "{{ item }}"
+        name: "{{ item.name }}"
+        uid: "{{ item.uid }}"
         append: true
         update_password: "on_create"
         password: "{{ accountdefaultpwd }}"
-        groups: "{{ media_group }}"
+        groups: "{{ item.groups | join(',') }}"
         shell: /bin/bash
-      with_items: "{{ users }}"
+      loop: "{{ users_config | rejectattr('is_system') | list }}"
       register: accounts
 
-    - name: Force change password
-      ansible.builtin.command: "chage -d 0 {{ item.name }}"
-      when: item.changed
+    - name: Force change password on newly created users
+      ansible.builtin.command: "chage -d 0 {{ item.item.name }}"
+      when:
+        - item.changed
+        - item.item.name not in existing_usernames
       with_items: "{{ accounts.results }}"
       changed_when: true
       tags:
@@ -87,23 +126,16 @@
       with_items: "{{ users }}"
       changed_when: true
 
-    - name: "Add admins to group"
-      ansible.builtin.user:
-        name: "{{ item }}"
-        append: true
-        groups: "{{ admin_group }}"
-      with_items: "{{ adminusers }}"
-
     - name: "Create system user"
       ansible.builtin.user:
-        name: "{{ item }}"
+        name: "{{ item.name }}"
+        uid: "{{ item.uid }}"
         append: true
         password_lock: true
         system: true
-        group: "{{ media_group }}"
-        groups:
-          - "{{ apps_group }}"
-      with_items: "{{ sysusers }}"
+        group: "{{ item.groups[0] }}"
+        groups: "{{ item.groups[1:] | join(',') if item.groups | length > 1 else omit }}"
+      loop: "{{ users_config | selectattr('is_system') | list }}"
 
     - name: Check for ssh pub keys
       ansible.builtin.stat:

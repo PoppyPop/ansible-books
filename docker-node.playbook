@@ -1,0 +1,12 @@
+---
+# Aggregator for docker nodes playbooks.
+
+- name: NAS base setup
+  import_playbook: docker-node.yml
+  tags:
+    - docker-core
+
+- name: NAS arr stack
+  import_playbook: docker-deploy.yml
+  tags:
+    - docker-deploy

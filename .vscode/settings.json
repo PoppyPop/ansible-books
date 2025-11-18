@@ -1,23 +1,24 @@
 {
-    "files.associations": {
-        "**/defaults/**/*.yml": "jinja-yaml",
-        "**/group_vars/**/*": "jinja-yaml",
-        "**/host_vars/**/*": "jinja-yaml",
-        "**/vars/**/*.yml": "jinja-yaml",
-        "**/tasks/**/*.yml": "ansible",
-        "**/handlers/*.yml": "ansible",
-        "**/meta/*.yml": "ansible",
-        "**/roles/**/*.yml": "ansible",
-        "**/playbooks/**/*.yml": "ansible",
-        "**/ansible/**/hosts": "ini",
-        "**/ansible/**/inventory": "ini",
-        "ansible.cfg": "ini",
-        "**/*.playbook": "ansible",
-    },
+  "files.associations": {
+    "**/defaults/**/*.yml": "jinja-yaml",
+    "**/group_vars/**/*": "jinja-yaml",
+    "**/host_vars/**/*": "jinja-yaml",
+    "**/vars/**/*.yml": "jinja-yaml",
+    "**/tasks/**/*.yml": "ansible",
+    "**/handlers/*.yml": "ansible",
+    "**/meta/*.yml": "ansible",
+    "**/roles/**/*.yml": "ansible",
+    "**/playbooks/**/*.yml": "ansible",
+    "**/ansible/**/hosts": "ini",
+    "**/ansible/**/inventory": "ini",
+    "ansible.cfg": "ini",
+    "**/*.playbook": "ansible"
+  },
 
-    // 3. Activation de l'analyse
-    "ansible.validation.enabled": true,
+  // 3. Activation de l'analyse
+  "ansible.validation.enabled": true,
 
-    "ansible.python.activationScript": ".venv/bin/activate",
-    "ansible.python.interpreterPath": "/root/ansible-books/.venv/bin/python",
+  "ansible.python.activationScript": ".venv/bin/activate",
+  "ansible.python.interpreterPath": "/root/ansible-books/.venv/bin/python",
+  "ansible.validation.lint.path": ".venv/bin/ansible-lint"
 }

@@ -1,0 +1,19 @@
+---
+# Aggregator for NAS-related playbooks.
+
+- name: NAS base setup
+  import_playbook: nas.yml
+  tags:
+    - nas-core
+
+- name: NAS arr stack
+  import_playbook: nas-arr.yml
+  tags:
+    - nas-arr
+
+- name: NAS shares
+  import_playbook: nas-shares.yml
+  tags:
+    - nas-shares
+
+
