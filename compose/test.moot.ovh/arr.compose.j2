@@ -1,0 +1,93 @@
+---
+services:
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=10010
+      - PGID=10008
+      - TZ=Europe/Paris
+    volumes:
+      - /datas/apps/arr/radarr/data:/config
+      - /datas/dls:/datas
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=10010
+      - PGID=10008
+      - TZ=Europe/Paris
+    volumes:
+      - /datas/apps/arr/sonarr/data:/config
+      - /datas/dls:/datas
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+  rdtclient:
+    image: rogerfar/rdtclient
+    container_name: rdtclient
+    environment:
+      - PUID=10010
+      - PGID=10008
+      - TZ=Europe/Paris
+    volumes:
+      - /datas/apps/arr/rdt/config:/data/db
+      - /datas/dls:/datas
+    logging:
+       driver: json-file
+       options:
+          max-size: 10m
+    ports:
+      - 6500:6500
+    restart: unless-stopped
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=10010
+      - PGID=10008
+      - TZ=Europe/Paris
+    volumes:
+      - /datas/apps/arr/prowlarr/data:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=10010
+      - PGID=10008
+      - TZ=Europe/Paris
+    volumes:
+      - /datas/apps/arr/bazarr/config:/config
+      - /datas/dls:/datas
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+  overseerr:
+    image: sctx/overseerr:latest
+    container_name: overseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Europe/Paris
+      - PORT=5055 #optional
+    ports:
+      - 5055:5055
+    volumes:
+      - /datas/apps/overseer/config:/app/config
+    restart: unless-stopped
+  maintainerr:
+    image: ghcr.io/maintainerr/maintainerr:2 
+    user: 1000:1000
+    volumes:
+      - /datas/apps/maintainerr/config:/app/config
+    environment:
+      - TZ=Europe/Paris
+    ports:
+      - 6246:6246 
+    restart: unless-stopped
+...
