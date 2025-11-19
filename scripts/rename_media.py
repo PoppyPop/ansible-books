@@ -20,7 +20,10 @@ CODEC_MAP = {
     "avc1": "x264",
 }
 
-TOKEN_PATTERN = re.compile(r"\b(WEB|\d{3,4}p|x264|x265|DV|ATMOS)\b", re.IGNORECASE)
+TOKEN_PATTERN = re.compile(
+    r"\b(WEB|\d{3,4}p|x264|x265|h264|h265|h\.264|h\.265|mpeg4|DV|ATMOS)\b",
+    re.IGNORECASE,
+)
 # If a source tag already exists, don't add WEB
 SOURCE_TAG_PATTERN = re.compile(
     r"\b(HDTV|BluRay|Blu-ray|Bluray|WEB-DL|WEBDL|WEBRip|WEB)\b", re.IGNORECASE
@@ -192,8 +195,29 @@ def build_new_name(
         return base
 
     # Avoid duplicating existing tokens if present in base
-    existing = set(m.group(0).upper() for m in TOKEN_PATTERN.finditer(base))
-    deduped = [t for t in tokens if t.upper() not in existing]
+    # Normalize codec variations: h264/h.264/x264 are equivalent, same for h265/h.265/x265
+    existing = set()
+    for m in TOKEN_PATTERN.finditer(base):
+        token = m.group(0).upper().replace(".", "")
+        if token in ("H264", "X264"):
+            existing.add("X264")
+        elif token in ("H265", "X265"):
+            existing.add("X265")
+        else:
+            existing.add(token)
+
+    deduped = []
+    for t in tokens:
+        t_upper = t.upper()
+        # Normalize check: x264/h264/h.264 and x265/h265/h.265 are equivalent
+        if t_upper in ("X264", "H264") and "X264" in existing:
+            continue
+        if t_upper in ("X265", "H265") and "X265" in existing:
+            continue
+        if t_upper in existing:
+            continue
+        deduped.append(t)
+
     if not deduped:
         return base
 
@@ -282,7 +306,7 @@ def main():
     )
     parser.add_argument(
         "--resolutions",
-        default="720,1080,2160",
+        default="480,720,1080,2160",
         help="Comma-separated list of allowed vertical resolutions for nearest mapping (default: 720,1080,2160)",
     )
     parser.add_argument(
