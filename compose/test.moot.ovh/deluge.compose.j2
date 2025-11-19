@@ -14,8 +14,8 @@ services:
       macvlan:
         ipv4_address: 10.0.3.4
     volumes:
-      - /datas/apps/deluge/config:/config
-      - /datas/apps/deluge/downloads:/downloads
+      - /opt/apps/deluge/config:/config
+      - /datas/dls/deluge:/datas
     restart: unless-stopped
 
 networks:

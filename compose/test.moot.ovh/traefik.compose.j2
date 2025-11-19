@@ -40,7 +40,7 @@ services:
       - "443:443/udp"
 
     volumes:
-      - /datas/apps/traefik/dynamic:/dynamic:ro
+      - /opt/apps/traefik/dynamic:/dynamic:ro
       - /etc/letsencrypt:/certs:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
 

@@ -18,13 +18,13 @@ services:
       - /dev/dri/renderD128:/dev/dri/renderD128
       - /dev/dri/card1:/dev/dri/card1
     volumes:
-      - /datas/apps/plex/database:/config
-      - /datas/apps/plex/transcode:/transcode
-      - /datas/Shares/Media:/media
+      - /opt/apps/plex/database:/config
+      - /opt/apps/plex/transcode:/transcode
+      - /datas/dls/media:/media
   plextraktwatch:
     image: ghcr.io/taxel/plextraktsync
     volumes:
-      - /datas/apps/plex/plextraktsync:/app/config
+      - /opt/apps/plex/plextraktsync:/app/config
     command: watch
     restart: unless-stopped
     environment:
@@ -38,7 +38,7 @@ services:
     container_name: plextraktsync
     profiles: ["schedule"]
     volumes:
-      - /datas/apps/plex/plextraktsync:/app/config
+      - /opt/apps/plex/plextraktsync:/app/config
     environment:
       - PUID=999
       - PGID=1004
