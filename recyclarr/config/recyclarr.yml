@@ -1,0 +1,297 @@
+---
+sonarr:
+  series:
+    base_url: !env_var SONARR_BASE_URL
+    api_key: !env_var SONARR_API_KEY
+
+    include:
+      # Comment out any of the following includes to disable them
+      - template: sonarr-quality-definition-series
+      # Choose between the standard or alternative quality profile setup (choose one only)
+      #- template: sonarr-v4-quality-profile-web-2160p-alternative
+      # - template: sonarr-v4-quality-profile-web-2160p-alternative
+      - template: sonarr-v4-custom-formats-web-2160p
+
+    quality_profiles:
+      - name: WEB-2160p
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: WEB 2160p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Remux-2160p
+          - name: WEB 2160p
+            qualities:
+              - WEBDL-2160p
+              - WEBRip-2160p
+          - name: Bluray-2160p Remux
+          - name: Bluray-2160p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: Bluray-1080p
+          - name: HDTV-1080p
+      - name: WEB-1080p
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: WEB 1080p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: Bluray-1080p
+          - name: HDTV-1080p
+
+    custom_formats:
+      # Advanced Audio from the guide
+      - trash_ids:
+          - a50b8a0c62274a7c38b09a9619ba9d86 # AAC
+          - b6fbafa7942952a13e17e2b1152b539a # ATMOS (undefined)
+          - dbe00161b08a25ac6154c55f95e6318d # DD
+          - 63487786a8b01b7f20dd2bc90dd4a477 # DD+
+          - 4232a509ce60c4e208d13825b7c06264 # DD+ ATMOS
+          - 5964f2a8b3be407d083498e4459d05d0 # DTS
+          - 9d00418ba386a083fbf4d58235fc37ef # DTS X
+          - c1a25cd67b5d2e08287c957b1eb903ec # DTS-ES
+          - cfa5fbd8f02a86fc55d8d223d06a5e1f # DTS-HD HRA
+          - c429417a57ea8c41d57e6990a8b0033f # DTS-HD MA
+          - 851bd64e04c9374c51102be3dd9ae4cc # FLAC
+          - 3e8b714263b26f486972ee1e0fe7606c # MP3
+          - 28f6ef16d61e2d1adfce3156ed8257e3 # Opus
+          - 30f70576671ca933adbdcfc736a69718 # PCM
+          - 1808e4b9cee74e064dfae3f1db99dbfe # TrueHD
+          - 0d7824bb924701997f874e7ff7d4844a # TrueHD ATMOS
+        assign_scores_to:
+          - name: WEB-2160p
+          - name: WEB-1080p
+    
+    
+      # HDR Formats
+      - trash_ids:
+          # Comment out the next line if you and all of your users' setups are fully DV compatible
+          - 9b27ab6498ec0f31a3353992e19434ca # DV (w/o HDR fallback)
+
+          # HDR10+ Boost - Uncomment the HDR10+ Boost line if you want to prefer HDR10+ releases
+          # DV Boost - Uncomment the DV Boost line if you want to prefer DV releases
+          # Uncomment both lines if you want to prefer both (DV HDR10+)
+          # - 0c4b99df9206d2cfac3c05ab897dd62a # HDR10+ Boost
+          - 7c3a61a9c6cb04f52f1544be6d44a026 # DV Boost
+        assign_scores_to:
+          - name: WEB-2160p
+          - name: WEB-1080p
+
+      # Optional
+      - trash_ids:
+          # - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
+          # - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
+          # - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+          # - 06d66ab109d4d2eddb2794d21526d140 # Retags
+          # - 1b3994c551cbb92a2c781af061f4ab44 # Scene
+        assign_scores_to:
+          - name: WEB-2160p
+          - name: WEB-1080p
+
+      - trash_ids:
+          # Uncomment the next six lines to allow x265 HD releases with HDR/DV
+          - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
+        assign_scores_to:
+          - name: WEB-2160p
+            score: 0
+          - name: WEB-1080p
+            score: 0
+      - trash_ids:
+           - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
+        assign_scores_to:
+          - name: WEB-2160p
+          - name: WEB-1080p
+
+      # Optional SDR
+      # Only ever use ONE of the following custom formats:
+      # SDR - block ALL SDR releases
+      # SDR (no WEBDL) - block UHD/4k Remux and Bluray encode SDR releases, but allow SDR WEB
+      - trash_ids:
+          # - 2016d1676f5ee13a5b7257ff86ac9a93 # SDR
+          - 83304f261cf516bb208c18c54c0adf97 # SDR (no WEBDL)
+        assign_scores_to:
+          - name: WEB-2160p
+          - name: WEB-1080p
+
+      - trash_ids:         
+          - d844321db5e126d2e7e46152f0706532 # FR HD Bluray Tier 01
+          - 3ba797e5dc13af4b8d9bb25e83d90de2 # FR LQ
+          - b8e91cc8fb2bd96468fab74730c30d18 # FR Remux Tier 01
+          - 2f3422339d185eb227a324644a2fbfca # FR Scene Groups
+          - ddb8eaa9c85a549c50034d280539d54d # FR WEB Tier 01
+          - a4c51febd4d8b2a0db10a3c974f21d92 # FR WEB Tier 02
+          - dbfc0a4b5cb4cbd693311c4482ae9683 # FR WEB Tier 03
+        assign_scores_to:
+          - name: WEB-2160p
+          - name: WEB-1080p
+
+        # French Audio Version
+      - trash_ids:            
+          - 2c29a39a4fdfd6d258799bc4c09731b9 # VFF
+          - 34789ec3caa819f087e23bbf9999daf7 # VF2
+        assign_scores_to:
+          - name: WEB-2160p
+            score: 101
+          - name: WEB-1080p
+            score: 101
+
+      - trash_ids: 
+          - 7a7f4e4f58bd1058440236d033a90b67 # VFQ
+          - 07a32f77690263bb9fda1842db7e273f # VOSTFR
+          - 84f0acbda9c0c9de783894fb66df25aa # FanSUB
+          - ea0bb4b6ba388992fad1092703b5ff7b # FastSUB
+        assign_scores_to:
+          - name: WEB-2160p
+            score: -101
+          - name: WEB-1080p
+            score: -101
+            
+      - trash_ids: 
+          - 7ba05c6e0e14e793538174c679126996 # MULTi
+        assign_scores_to:
+          - name: WEB-2160p
+            score: 0
+          - name: WEB-1080p
+            score: 0
+
+radarr:
+  movies:
+    base_url: !env_var RADARR_BASE_URL
+    api_key: !env_var RADARR_API_KEY
+
+    include:
+      # Comment out any of the following includes to disable them
+      - template: radarr-quality-definition-movie
+      # Choose between the standard or alternative quality profile setup (choose one only)
+      #- template: radarr-v4-quality-profile-web-2160p-alternative
+      # - template: radarr-v4-quality-profile-web-2160p-alternative
+      - template: radarr-custom-formats-remux-web-2160p
+    quality_profiles:
+      - name: Remux + WEB 2160p
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: WEB 2160p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Remux-2160p
+          - name: WEB 2160p
+            qualities:
+              - WEBDL-2160p
+              - WEBRip-2160p
+          - name: Bluray-2160p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: Bluray-1080p
+
+    custom_formats:
+      # Advanced Audio from the guide
+      - trash_ids:
+          - 240770601cc226190c367ef59aba7463 # AAC
+          - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
+          - c2998bd0d90ed5621d8df281e839436e # DD
+          - 185f1dd7264c4562b9022d963ac37424 # DD+
+          - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
+          - 1c1a4c5e823891c75bc50380a6866f73 # DTS
+          - 2f22d89048b01681dde8afe203bf2e95 # DTS X
+          - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
+          - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
+          - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
+          - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
+          - 6ba9033150e7896bdc9ec4b44f2b230f # MP3
+          - a061e2e700f81932daf888599f8a8273 # Opus
+          - e7c2fcae07cbada050a0af3357491d7b # PCM
+          - 3cafb66171b47f226146a0770576870f # TrueHD
+          - 496f355514737f7d83bf7aa4d24f8169 # TrueHD ATMOS
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+
+      # HDR Formats
+      - trash_ids:
+          # Comment out the next line if you and all of your users' setups are fully DV compatible
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (w/o HDR fallback)
+
+          # HDR10+ Boost - Uncomment the HDR10+ Boost line if you want to prefer HDR10+ releases
+          # DV Boost - Uncomment the DV Boost line if you want to prefer DV releases
+          # Uncomment both lines if you want to prefer both (DV HDR10+)
+          # - 0c4b99df9206d2cfac3c05ab897dd62a # HDR10+ Boost
+          - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+
+      - trash_ids:
+          # Uncomment the next six lines to allow x265 HD releases with HDR/DV
+          - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+            score: 0
+      - trash_ids:
+           - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+
+      # Optional SDR
+      # Only ever use ONE of the following custom formats:
+      # SDR - block ALL SDR releases
+      # SDR (no WEBDL) - block UHD/4k Remux and Bluray encode SDR releases, but allow SDR WEB
+      - trash_ids:
+          # - 2016d1676f5ee13a5b7257ff86ac9a93 # SDR
+          - 25c12f78430a3a23413652cbd1d48d77 # SDR (no WEBDL)
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+
+      - trash_ids:         
+          - 5322da05b19d857acc1e75be3edf47b3 # FR HD Bluray Tier 01
+          - 57f34251344be2e283fc30e00e458be6 # FR HD Bluray Tier 02
+          - 48f031e76111f17ea94898f4cdc34fdc # FR LQ
+          - 5583260016e0b9f683f53af41fb42e4a # FR Remux Tier 01
+          - 9019d81307e68cd4a7eb06a567e833b8 # FR Remux Tier 02
+          - 0d94489c0d5828cd3bf9409d309fb32b # FR Scene Groups
+          - 64f8f12bbf7472a6ccf838bfd6b5e3e8 # FR UHD Bluray Tier 01
+          - 0dcf0c8a386d82e3f2d424189af14065 # FR UHD Bluray Tier 02
+          - 9790a618cec1aeac8ce75601a17ea40d # FR WEB Tier 01
+          - 3c83a765f84239716bd5fd2d7af188f9 # FR WEB Tier 02
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+
+        # French Audio Version
+      - trash_ids:            
+          - 404c08fd0bd67f39b4d8e5709319094e # VFF
+          - 29b5f7b1a5f20f64228786c3ab1bdc7d # VF2
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+            score: 101
+
+      - trash_ids: 
+          - b6ace47331a1d3b77942fc18156f6df6 # VFQ
+          - 9172b2f683f6223e3a1846427b417a3d # VOSTFR
+          - 02e48d30a176c91baf9e15de05e5dc6a # FanSUB
+          - 7f9b93f82b7e996391525f2be1d891e0 # FastSUB
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+            score: -101
+            
+      - trash_ids: 
+          - 4b900e171accbfb172729b63323ea8ca # MULTi
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+            score: 0

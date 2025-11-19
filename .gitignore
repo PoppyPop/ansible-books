@@ -1,3 +1,9 @@
 vaultpass.key
 .venv/
 .ansible/
+
+recyclarr/config/cache/**
+recyclarr/config/logs/**
+recyclarr/config/repositories/**
+
+**/.env
