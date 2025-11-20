@@ -59,8 +59,10 @@ services:
       - EXTRACTDIR=/datas/ddl/extract
       - ENDEDDIR=/datas/ddl/ended
       - SONARR_URL=http://{{inventory_hostname}}:8989
-      - SONARR_API_KEY=TODO
+      - SONARR_API_KEY={{ sonarr_api_key }}
+      - RADARR_URL=http://{{inventory_hostname}}:7878
+      - RADARR_API_KEY={{ radarr_api_key }}
     logging:
       driver: json-file
       options:
-        max-size: 1m 
+        max-size: 1m

@@ -1,0 +1,33 @@
+services:
+  plextraktwatch:
+    image: ghcr.io/taxel/plextraktsync
+    volumes:
+      - /datas/apps/trakt/plextraktsync:/app/config
+    command: watch
+    restart: unless-stopped
+    environment:
+      - PUID=10010
+      - PGID=10008
+      - PLEXAPI_HEADER_IDENTIFIER=f74734b68581
+  plextraktsync:
+    image: ghcr.io/taxel/plextraktsync
+    command: sync
+    container_name: plextraktsync
+
+    volumes:
+      - /datas/apps/trakt/plextraktsync:/app/config
+    environment:
+      - PUID=10010
+      - PGID=10008
+      - PLEXAPI_HEADER_IDENTIFIER=f74734b68582
+  scheduler:
+    image: mcuadros/ofelia:latest
+    container_name: scheduler
+    command: daemon --docker
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      ofelia.job-run.plextraktsync.schedule: "@every 2h"
+      ofelia.job-run.plextraktsync.container: "plextraktsync"
+      ofelia.job-run.plextraktsync.command: "sync"

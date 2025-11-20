@@ -4,11 +4,12 @@ services:
     container_name: plex
     image: plexinc/pms-docker
     restart: unless-stopped
+    #user: "10010:10008"
     environment:
       - TZ=Europe/Paris
       - PLEX_CLAIM={{ plex_claim }}
-      - PLEX_UID=999
-      - PLEX_GID=1004
+      - PLEX_UID=10010
+      - PLEX_GID=10008
       - CHANGE_CONFIG_DIR_OWNERSHIP=false
     networks:
       macvlan:
@@ -20,42 +21,10 @@ services:
     volumes:
       - /datas/apps/plex/database:/config
       - /datas/apps/plex/transcode:/transcode
-      - /datas/Shares/Media:/media
-  plextraktwatch:
-    image: ghcr.io/taxel/plextraktsync
-    volumes:
-      - /datas/apps/plex/plextraktsync:/app/config
-    command: watch
-    restart: unless-stopped
-    environment:
-      - PUID=999
-      - PGID=1004
-    depends_on:
-      - plex
-  plextraktsync:
-    image: ghcr.io/taxel/plextraktsync
-    command: sync
-    container_name: plextraktsync
-    profiles: ["schedule"]
-    volumes:
-      - /datas/apps/plex/plextraktsync:/app/config
-    environment:
-      - PUID=999
-      - PGID=1004
-    depends_on:
-      - plex
-  scheduler:
-    image: mcuadros/ofelia:latest
-    container_name: scheduler
-    command: daemon --docker
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    labels:
-      ofelia.job-run.plextraktsync.schedule: "0 23 * * *"
-      ofelia.job-run.plextraktsync.container: "plextraktsync"
-      ofelia.job-run.plextraktsync.command: "sync"
+      - /datas/dls/media:/media
+
 
 networks:
   macvlan:
+    name: macvlan
     external: true
