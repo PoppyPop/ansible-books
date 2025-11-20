@@ -1,6 +1,6 @@
 ---
 - name: Deploy docker-compose
-  hosts: dockerregistry
+  hosts: dockernode
   become: true
   vars_files:
     - secrets.yaml
@@ -13,7 +13,7 @@
 
     - name: Create folder - datas
       ansible.builtin.file:
-        path: "/datas/apps"
+        path: "/opt/apps"
         state: directory
         recurse: true
 

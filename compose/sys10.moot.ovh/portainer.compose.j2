@@ -2,20 +2,12 @@
 services:
   portainer:
     image: portainer/portainer-ce:latest
+    container_name: portainer
     pull_policy: always
     ports:
-      - 9443:9443
       - 8000:8000
+      - 9000:9000
     volumes:
-      - /datas/apps/portainer:/data
+      - /opt/apps/portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
-      - /etc/letsencrypt/live:/certs/live
-      - /etc/letsencrypt/archive:/certs/archive
     restart: unless-stopped
-    command: 
-      - "--sslcert"
-      - "/certs/live/{{inventory_hostname}}/fullchain.pem"
-      - "--sslkey"
-      - "/certs/live/{{inventory_hostname}}/privkey.pem"
-volumes:
-  data:

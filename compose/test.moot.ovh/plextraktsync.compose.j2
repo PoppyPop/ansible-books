@@ -2,7 +2,7 @@ services:
   plextraktwatch:
     image: ghcr.io/taxel/plextraktsync
     volumes:
-      - /datas/apps/trakt/plextraktsync:/app/config
+      - /opt/apps/trakt/plextraktsync:/app/config
     command: watch
     restart: unless-stopped
     environment:
@@ -15,7 +15,7 @@ services:
     container_name: plextraktsync
 
     volumes:
-      - /datas/apps/trakt/plextraktsync:/app/config
+      - /opt/apps/trakt/plextraktsync:/app/config
     environment:
       - PUID=10010
       - PGID=10008
