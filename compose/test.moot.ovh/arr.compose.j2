@@ -8,7 +8,7 @@ services:
       - PGID=10008
       - TZ=Europe/Paris
     volumes:
-      - /opt/apps/arr/radarr/data:/config
+      - /opt/apps/radarr/data:/config
       - /datas/dls:/datas
     ports:
       - 7878:7878
@@ -21,7 +21,7 @@ services:
       - PGID=10008
       - TZ=Europe/Paris
     volumes:
-      - /opt/apps/arr/sonarr/data:/config
+      - /opt/apps/sonarr/data:/config
       - /datas/dls:/datas
     ports:
       - 8989:8989
@@ -34,7 +34,7 @@ services:
       - PGID=10008
       - TZ=Europe/Paris
     volumes:
-      - /opt/apps/arr/rdt/config:/data/db
+      - /opt/apps/rdt/config:/data/db
       - /datas/dls:/datas
     logging:
        driver: json-file
@@ -51,7 +51,7 @@ services:
       - PGID=10008
       - TZ=Europe/Paris
     volumes:
-      - /opt/apps/arr/prowlarr/data:/config
+      - /opt/apps/prowlarr/data:/config
     ports:
       - 9696:9696
     restart: unless-stopped
@@ -63,7 +63,7 @@ services:
       - PGID=10008
       - TZ=Europe/Paris
     volumes:
-      - /opt/apps/arr/bazarr/config:/config
+      - /opt/apps/bazarr/config:/config
       - /datas/dls:/datas
     ports:
       - 6767:6767
