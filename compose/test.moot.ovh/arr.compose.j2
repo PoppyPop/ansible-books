@@ -8,7 +8,7 @@ services:
       - PGID=10008
       - TZ=Europe/Paris
     volumes:
-      - /opt/apps/arr/radarr/data:/config
+      - /datas/apps/arr/radarr/data:/config
       - /datas/dls:/datas
     ports:
       - 7878:7878
@@ -21,7 +21,7 @@ services:
       - PGID=10008
       - TZ=Europe/Paris
     volumes:
-      - /opt/apps/arr/sonarr/data:/config
+      - /datas/apps/arr/sonarr/data:/config
       - /datas/dls:/datas
     ports:
       - 8989:8989
@@ -34,7 +34,7 @@ services:
       - PGID=10008
       - TZ=Europe/Paris
     volumes:
-      - /opt/apps/arr/rdt/config:/data/db
+      - /datas/apps/arr/rdt/config:/data/db
       - /datas/dls:/datas
     logging:
        driver: json-file
@@ -51,7 +51,7 @@ services:
       - PGID=10008
       - TZ=Europe/Paris
     volumes:
-      - /opt/apps/arr/prowlarr/data:/config
+      - /datas/apps/arr/prowlarr/data:/config
     ports:
       - 9696:9696
     restart: unless-stopped
@@ -63,7 +63,7 @@ services:
       - PGID=10008
       - TZ=Europe/Paris
     volumes:
-      - /opt/apps/arr/bazarr/config:/config
+      - /datas/apps/arr/bazarr/config:/config
       - /datas/dls:/datas
     ports:
       - 6767:6767
@@ -78,13 +78,13 @@ services:
     ports:
       - 5055:5055
     volumes:
-      - /opt/apps/overseer/config:/app/config
+      - /datas/apps/overseer/config:/app/config
     restart: unless-stopped
   maintainerr:
     image: ghcr.io/maintainerr/maintainerr:2 
     user: 1000:1000
     volumes:
-      - /opt/apps/maintainerr/config:/app/config
+      - /datas/apps/maintainerr/config:/app/config
     environment:
       - TZ=Europe/Paris
     ports:

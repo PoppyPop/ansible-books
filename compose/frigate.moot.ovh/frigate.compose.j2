@@ -13,8 +13,8 @@ services:
       - /dev/dri/card0:/dev/dri/card0
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /opt/apps/frigate/config.yml:/config/config.yml
-      - /datas/frigate/storage:/media/frigate
+      - /datas/apps/frigate/config.yml:/config/config.yml
+      - /datas/apps/frigate/storage:/media/frigate
       - type: tmpfs # Optional: 1GB of memory, reduces SSD/SD Card wear
         target: /tmp/cache
         tmpfs:

@@ -13,7 +13,7 @@
 
     - name: Create folder - datas
       ansible.builtin.file:
-        path: "/opt/apps"
+        path: "/datas/apps"
         state: directory
         recurse: true
 

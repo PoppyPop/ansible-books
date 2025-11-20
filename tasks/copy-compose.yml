@@ -18,7 +18,7 @@
 
 - name: Create Dir
   ansible.builtin.file:
-    path: "/opt/apps/{{ compose_name }}"
+    path: "/datas/apps/{{ compose_name }}"
     state: directory
     # group: apps
     mode: "0775"
@@ -35,7 +35,7 @@
 
 - name: Create apps subDir
   ansible.builtin.file:
-    path: "/opt/apps/{{ item.path | regex_replace('^compose-files/', '') | dirname }}"
+    path: "/datas/apps/{{ item.path | regex_replace('^compose-files/', '') | dirname }}"
     state: directory
     # group: apps
     mode: "0775"
@@ -45,7 +45,7 @@
 - name: Copy app files
   ansible.builtin.template:
     src: "{{ item.path }}"
-    dest: "/opt/apps/{{ item.path | regex_replace('^compose-files/', '') | regex_replace('.j2$', '') }}"
+    dest: "/datas/apps/{{ item.path | regex_replace('^compose-files/', '') | regex_replace('.j2$', '') }}"
     mode: "0644"
   with_items: "{{ stat_result.results | map(attribute='files') | flatten }}"
   when: stat_result.matched > 0

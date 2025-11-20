@@ -27,7 +27,7 @@ services:
       - "5000:5000"
       - "443:5000"
     volumes:
-      - /opt/apps/registry/mirror:/var/lib/registry
+      - /datas/apps/registry/mirror:/var/lib/registry
       - /etc/letsencrypt/live:/certs/live
       - /etc/letsencrypt/archive:/certs/archive
     environment:
@@ -50,7 +50,7 @@ services:
     ports:
       - "5001:5000"
     volumes:
-      - /opt/apps/registry/local:/var/lib/registry
+      - /datas/apps/registry/local:/var/lib/registry
       - /etc/letsencrypt/live:/certs/live
       - /etc/letsencrypt/archive:/certs/archive
     environment:
