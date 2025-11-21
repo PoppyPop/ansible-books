@@ -2,7 +2,7 @@
 - name: Update all nodes
   hosts: all
   become: true
-  serial: 1
+  serial: 2
   tasks:
     - name: Update apt cache
       ansible.builtin.apt:
