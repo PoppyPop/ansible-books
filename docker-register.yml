@@ -1,0 +1,52 @@
+---
+- name: Setup Docker and Portainer
+  hosts: dockernode
+  become: true
+  vars_files:
+    - secrets.yaml
+
+
+  tasks:
+    - name: Get Portainer infra server
+      ansible.builtin.set_fact:
+        portainer_server: "{{ groups['infra'][0] }}"
+      when: "'infra' not in group_names"
+
+    - name: Check if endpoint already exists in Portainer
+      ansible.builtin.uri:
+        url: "http://{{ portainer_server }}:9000/api/endpoints"
+        method: GET
+        headers:
+          X-API-Key: "{{ portainer_api_key }}"
+        validate_certs: false
+        status_code: [200]
+      register: portainer_endpoints
+      when: "'infra' not in group_names"
+      delegate_to: localhost
+
+    - name: Check if current host is registered
+      ansible.builtin.set_fact:
+        is_registered: "{{ portainer_endpoints.json | selectattr('Name', 'equalto', inventory_hostname) | list | length > 0 }}"
+      when: "'infra' not in group_names"
+
+    - name: Register agent with Portainer
+      ansible.builtin.uri:
+        url: "http://{{ portainer_server }}:9000/api/endpoints"
+        method: POST
+        headers:
+          X-API-Key: "{{ portainer_api_key }}"
+          Content-Type: "application/json"
+        body_format: form-multipart
+        body:
+          Name: "{{ inventory_hostname }}"
+          EndpointCreationType: "2"
+          URL: "tcp://{{ inventory_hostname }}:9001"
+          ContainerEngine: "docker"
+          GroupID: "1"
+          TLS: "true"
+          TLSSkipVerify: "true"
+          TLSSkipClientVerify: "true"
+        validate_certs: false
+        status_code: [200, 201]
+      when: "'infra' not in group_names and not is_registered"
+      delegate_to: localhost
