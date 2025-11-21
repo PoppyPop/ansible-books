@@ -1,0 +1,62 @@
+---
+- name: Update all nodes
+  hosts: all
+  become: true
+  serial: 1
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+    - name: Upgrade all packages (Debian/Ubuntu)
+      ansible.builtin.apt:
+        upgrade: dist
+        update_cache: true
+      when: ansible_os_family == "Debian"
+      register: apt_upgrade_result
+
+    - name: Autoremove unused packages (Debian/Ubuntu)
+      ansible.builtin.apt:
+        autoremove: true
+        autoclean: true
+      when: ansible_os_family == "Debian"
+
+    - name: Upgrade all packages (RedHat/Fedora)
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+      when: ansible_os_family == "RedHat"
+      register: dnf_upgrade_result
+
+    - name: Autoremove unused packages (RedHat/Fedora)
+      ansible.builtin.dnf:
+        autoremove: true
+      when: ansible_os_family == "RedHat"
+
+    - name: Check if reboot is required (Debian/Ubuntu)
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required_debian
+      when: ansible_os_family == "Debian"
+
+    - name: Check if reboot is required (RedHat/Fedora)
+      ansible.builtin.command: needs-restarting -r
+      register: reboot_required_redhat
+      failed_when: false
+      changed_when: false
+      when: ansible_os_family == "RedHat"
+
+    - name: Reboot if required
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible for system updates"
+        connect_timeout: 5
+        reboot_timeout: 600
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
+      when: >
+        (ansible_os_family == "Debian" and reboot_required_debian.stat.exists | default(false)) or
+        (ansible_os_family == "RedHat" and reboot_required_redhat.rc == 1)

@@ -1,0 +1,7 @@
+skip_list:
+  - name[template]
+  - yaml[line-length]
+  - package-latest
+
+exclude_paths:
+  - recyclarr
