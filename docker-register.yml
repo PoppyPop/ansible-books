@@ -50,3 +50,5 @@
         status_code: [200, 201]
       when: "'infra' not in group_names and not is_registered"
       delegate_to: localhost
+      register: portainer_register_result
+      changed_when: portainer_register_result.status in [200, 201]

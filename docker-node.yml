@@ -44,11 +44,21 @@
         mode: "0600"
 
     - name: Certbot | Generate Certificate
-      ansible.builtin.command: >
-        certbot certonly --non-interactive --agree-tos --dns-cloudflare
-        --dns-cloudflare-credentials /etc/letsencrypt/dnscloudflare.ini
-        -m {{ certbot_mail }} -d {{ inventory_hostname }} -d *.
-        {{ inventory_hostname }}
+      ansible.builtin.command:
+        argv:
+          - certbot
+          - certonly
+          - --non-interactive
+          - --agree-tos
+          - --dns-cloudflare
+          - --dns-cloudflare-credentials
+          - /etc/letsencrypt/dnscloudflare.ini
+          - -m
+          - "{{ certbot_mail }}"
+          - -d
+          - "{{ inventory_hostname }}"
+          - -d
+          - "*.{{ inventory_hostname }}"
       args:
         creates: "/etc/letsencrypt/renewal/{{ inventory_hostname }}.conf"
 
