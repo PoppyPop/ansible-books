@@ -4,6 +4,9 @@
   become: true
   vars_files:
     - secrets.yaml
+  vars:
+    unifi_udm_host: "unifi.moot.ovh"
+
   tasks:
     - name: Run the equivalent of "apt-get update" as a separate step
       apt:
@@ -64,11 +67,57 @@
         name=ansible
         state=present
         password_lock=yes
-        
-    - name: Ensure dns record is present
-      ansible.builtin.assert:
-        that:
-          - dig != ""
-          - dig != "NXDOMAIN"
-      vars:
-        dig: "{{ lookup('community.general.dig', inventory_hostname) }}"
+
+    - name: UDM | Fetch existing DNS records
+      ansible.builtin.uri:
+        url: "https://{{ unifi_udm_host }}/proxy/network/v2/api/site/default/static-dns"
+        method: GET
+        status_code: 200
+        headers:
+          X-API-Key: "{{ unifi_api_key }}"
+      register: unifi_dns_records
+      tags: [dns]
+
+    - name: UDM | Determine if record exists
+      ansible.builtin.set_fact:
+        unifi_dns_exists: "{{ (unifi_dns_records.json | default([])) | selectattr('key', 'equalto', inventory_hostname) | list | length > 0 }}"
+      when: unifi_dns_records is defined
+      tags: [dns]
+
+    - name: UDM | Create DNS A record
+      ansible.builtin.uri:
+        url: "https://{{ unifi_udm_host }}/proxy/network/v2/api/site/default/static-dns"
+        method: POST
+        body_format: json
+        body:
+          key: "{{ inventory_hostname }}"
+          record_type: "A"
+          value: "{{ ansible_default_ipv4.address }}"
+          enabled: true
+        status_code: [200,201]
+        headers:
+          X-API-Key: "{{ unifi_api_key }}"
+      when: unifi_dns_exists is defined and (not unifi_dns_exists)
+      tags: [dns]
+
+    - name: UDM | Determine if wildcard record exists
+      ansible.builtin.set_fact:
+        unifi_dns_wildcard_exists: "{{ (unifi_dns_records.json | default([])) | selectattr('key', 'equalto', '*.' + inventory_hostname) | list | length > 0 }}"
+      when: unifi_dns_records is defined
+      tags: [dns]
+
+    - name: UDM | Create wildcard DNS A record
+      ansible.builtin.uri:
+        url: "https://{{ unifi_udm_host }}/proxy/network/v2/api/site/default/static-dns"
+        method: POST
+        body_format: json
+        body:
+          key: "*.{{ inventory_hostname }}"
+          record_type: "A"
+          value: "{{ ansible_default_ipv4.address }}"
+          enabled: true
+        status_code: [200,201]
+        headers:
+          X-API-Key: "{{ unifi_api_key }}"
+      when: unifi_dns_wildcard_exists is defined and (not unifi_dns_wildcard_exists)
+      tags: [dns]
