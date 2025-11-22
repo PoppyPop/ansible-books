@@ -1,11 +1,14 @@
 ---
 services:
   ocpp-proxy:
-    image: sys10.moot.ovh:5001/websocket-proxy:latest
+    image: sys10.moot.ovh:5001/ocpp-2w-proxy:latest
     pull_policy: always
     restart: unless-stopped
+    environment:
+      - TZ=Europe/Paris
     ports:
-      - target: 8765
+      - target: 8321
         published: 8765
         protocol: tcp
-      
+    volumes:
+      - /opt/apps/ocpp-proxy/ocpp-2w-proxy.ini:/app/ocpp-2w-proxy.ini:ro

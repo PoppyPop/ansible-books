@@ -8,16 +8,16 @@
   tasks:
     - name: Set Version
       ansible.builtin.set_fact:
-        webs_proxy_version: "1.0.5"
+        webs_proxy_version: "1.0.0"
 
-    - name: Build websocket-proxy image
+    - name: Build ocpp-2w-proxy image
       community.docker.docker_image:
         build:
-          path: ./docker/websocket-proxy
+          path: ./docker/ocpp-2w-proxy
           pull: true
           rm: true
           nocache: true
-        name: sys10.moot.ovh:5001/websocket-proxy
+        name: sys10.moot.ovh:5001/ocpp-2w-proxy
         push: true
         tag: "{{ webs_proxy_version }}"
         source: build
@@ -25,8 +25,8 @@
 
     - name: Add tag latest to image
       community.docker.docker_image:
-        name: "sys10.moot.ovh:5001/websocket-proxy:{{ webs_proxy_version }}"
-        repository: sys10.moot.ovh:5001/websocket-proxy:latest
+        name: "sys10.moot.ovh:5001/ocpp-2w-proxy:{{ webs_proxy_version }}"
+        repository: sys10.moot.ovh:5001/ocpp-2w-proxy:latest
       # As 'latest' usually already is present, we need to enable overwriting of existing tags:
         force_tag: true
         push: true

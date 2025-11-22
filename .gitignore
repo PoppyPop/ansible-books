@@ -7,3 +7,5 @@ recyclarr/config/logs/**
 recyclarr/config/repositories/**
 
 **/.env
+**/__pycache__/
+**/*.pyc
