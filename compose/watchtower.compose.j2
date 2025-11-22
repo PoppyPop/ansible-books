@@ -1,0 +1,11 @@
+services:
+  watchtower:
+    image: nickfedor/watchtower:latest
+    container_name: watchtower
+    pull_policy: always
+    command: --update-on-start
+    environment:
+      - TZ=Europe/Paris
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
