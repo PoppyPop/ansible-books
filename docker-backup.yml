@@ -1,0 +1,175 @@
+---
+- name: Backup and Restore Docker Apps
+  hosts: all
+  become: true
+  vars_files:
+    - secrets.yaml
+  vars:
+    backup_dir: /backup/docker-apps
+    backup_timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
+    apps_dir: /opt/apps
+  tasks:
+    # Common tasks - check container health
+    - name: Get docker host info
+      community.docker.docker_host_info:
+        containers: true
+        containers_all: true
+      register: docker_info
+      tags: [backup, restore]
+
+    - name: Check for failed containers
+      ansible.builtin.set_fact:
+        failed_containers: "{{ docker_info.containers | selectattr('Status', 'defined') | selectattr('Status', 'search', 'Exited \\([1-9]\\d*\\)') | list }}"
+      tags: [backup, restore]
+
+    - name: Abort if failed containers exist
+      ansible.builtin.fail:
+        msg: "Found failed containers: {{ failed_containers | map(attribute='Names') | list }}. Please fix before proceeding."
+      when: failed_containers | length > 0
+      tags: [backup, restore]
+
+    - name: Get running containers list
+      ansible.builtin.set_fact:
+        running_containers: "{{ docker_info.containers | selectattr('Status', 'defined') | selectattr('Status', 'search', '^Up ') | map(attribute='Id') | list }}"
+      tags: [backup, restore]
+
+    # Backup tasks
+    - name: Create backup directory
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: "0750"
+      tags: [backup]
+
+    - name: Stop all running containers
+      community.docker.docker_container:
+        name: "{{ item }}"
+        state: stopped
+      loop: "{{ running_containers }}"
+      tags: [backup, restore]
+
+    - name: Create backup archive
+      community.general.archive:
+        path: "{{ apps_dir }}"
+        dest: "{{ backup_dir }}/apps-{{ inventory_hostname }}-{{ backup_timestamp }}.tar.gz"
+        format: gz
+        mode: "0640"
+      tags: [backup]
+
+    - name: Display backup location
+      ansible.builtin.debug:
+        msg: "Backup created: {{ backup_dir }}/apps-{{ inventory_hostname }}-{{ backup_timestamp }}.tar.gz"
+      tags: [backup]
+
+    - name: Download backup to local machine
+      ansible.builtin.fetch:
+        src: "{{ backup_dir }}/apps-{{ inventory_hostname }}-{{ backup_timestamp }}.tar.gz"
+        dest: "./backups/apps-{{ inventory_hostname }}-{{ backup_timestamp }}.tar.gz"
+        flat: true
+      tags: [backup]
+
+    - name: Display local backup location
+      ansible.builtin.debug:
+        msg: "Backup downloaded to: ./backups/apps-{{ inventory_hostname }}-{{ backup_timestamp }}.tar.gz"
+      tags: [backup]
+
+    # Restore tasks
+    - name: Find local backup files
+      ansible.builtin.find:
+        paths: "./backups"
+        patterns: "apps-{{ inventory_hostname }}-*.tar.gz"
+        file_type: file
+      register: local_backup_files
+      delegate_to: localhost
+      tags: [restore]
+
+    - name: Set latest local backup file
+      ansible.builtin.set_fact:
+        latest_local_backup: "{{ local_backup_files.files | sort(attribute='mtime', reverse=true) | first }}"
+      when: local_backup_files.matched > 0
+      tags: [restore]
+
+    - name: Display selected backup for restore
+      ansible.builtin.debug:
+        msg: "Will restore from: {{ latest_local_backup.path }}"
+      when: local_backup_files.matched > 0
+      tags: [restore]
+
+    - name: Ensure remote backup directory exists
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: "0750"
+      when: local_backup_files.matched > 0
+      tags: [restore]
+
+    - name: Upload backup to remote server
+      ansible.builtin.copy:
+        src: "{{ latest_local_backup.path }}"
+        dest: "{{ backup_dir }}/{{ latest_local_backup.path | basename }}"
+        mode: "0640"
+      when: local_backup_files.matched > 0
+      tags: [restore]
+
+    - name: Find latest backup
+      ansible.builtin.find:
+        paths: "{{ backup_dir }}"
+        patterns: "apps-{{ inventory_hostname }}-*.tar.gz"
+        file_type: file
+      register: backup_files
+      tags: [restore]
+
+    - name: Set latest backup file
+      ansible.builtin.set_fact:
+        latest_backup: "{{ backup_files.files | sort(attribute='mtime', reverse=true) | first }}"
+      when: backup_files.matched > 0
+      tags: [restore]
+
+    - name: Abort if no backup found
+      ansible.builtin.fail:
+        msg: "No backup file found in {{ backup_dir }}"
+      when: backup_files.matched == 0
+      tags: [restore]
+
+    - name: Backup current apps directory
+      ansible.builtin.command:
+        cmd: "mv {{ apps_dir }} {{ apps_dir }}.pre-restore-{{ backup_timestamp }}"
+      args:
+        creates: "{{ apps_dir }}.pre-restore-{{ backup_timestamp }}"
+      tags: [restore]
+
+    - name: Extract backup archive
+      ansible.builtin.unarchive:
+        src: "{{ latest_backup.path }}"
+        dest: /
+        remote_src: true
+      tags: [restore]
+
+    - name: Display restore info
+      ansible.builtin.debug:
+        msg: "Restored from: {{ latest_backup.path }}"
+      tags: [restore]
+
+    # Post-backup/restore - restart containers
+    - name: Start previously running containers
+      community.docker.docker_container:
+        name: "{{ item }}"
+        state: started
+      loop: "{{ running_containers }}"
+      tags: [backup, restore]
+
+    - name: Wait for containers to be healthy
+      ansible.builtin.pause:
+        seconds: 30
+      tags: [backup, restore]
+
+    - name: Verify containers are running
+      community.docker.docker_host_info:
+        containers: true
+      register: docker_info_after
+      tags: [backup, restore]
+
+    - name: Display container status
+      ansible.builtin.debug:
+        msg: "Running containers: {{ docker_info_after.containers | selectattr('Status', 'search', '^Up ') | map(attribute='Names') | list }}"
+      tags: [backup, restore]

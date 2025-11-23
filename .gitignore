@@ -9,3 +9,5 @@ recyclarr/config/repositories/**
 **/.env
 **/__pycache__/
 **/*.pyc
+
+backups/
