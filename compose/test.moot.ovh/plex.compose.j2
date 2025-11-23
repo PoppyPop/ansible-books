@@ -4,6 +4,7 @@ services:
     container_name: plex
     image: plexinc/pms-docker
     restart: unless-stopped
+    pull_policy: always
     #user: "10010:10008"
     environment:
       - TZ=Europe/Paris

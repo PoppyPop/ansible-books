@@ -2,8 +2,8 @@ services:
   traefik:
     image: traefik:v3
     container_name: traefik
-    restart: always
-
+    restart: unless-stopped
+    pull_policy: always
     command:
       # Entrypoints HTTP + HTTPS
       - "--entrypoints.web.address=:80"
@@ -58,7 +58,8 @@ services:
   whoami:
     image: traefik/whoami
     container_name: whoami
-    restart: always
+    restart: unless-stopped
+    pull_policy: always
     networks:
       - traefik
 

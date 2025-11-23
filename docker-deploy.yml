@@ -63,3 +63,15 @@
     - name: Remove old compose files
       ansible.builtin.include_tasks: tasks/remove-compose.yml
       loop: "{{ proper_deployed_compose | difference(proper_local_compose) | difference(proper_host_compose) }}"
+
+    - name: Clean up dangling Docker images
+      community.docker.docker_prune:
+        images: true
+        images_filters:
+          dangling: true
+      register: docker_prune_result
+
+    - name: Display pruned images info
+      ansible.builtin.debug:
+        msg: "Reclaimed {{ docker_prune_result.space_reclaimed | human_readable }} from dangling images"
+      when: docker_prune_result.space_reclaimed is defined and docker_prune_result.space_reclaimed > 0

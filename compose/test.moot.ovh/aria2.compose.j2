@@ -26,6 +26,7 @@ services:
 #      - 6888:6888
 #      - 6888:6888/udp
     restart: unless-stopped
+    pull_policy: always
 # Since Aria2 will continue to generate logs, limit the log size to 1M to prevent your hard disk from running out of space.
     logging:
       driver: json-file
@@ -39,6 +40,7 @@ services:
     ports:
       - 6880:6880
     restart: unless-stopped
+    pull_policy: always
     logging:
       driver: json-file
       options:
@@ -50,6 +52,7 @@ services:
     user: "10010:10008"
     network_mode: bridge
     restart: unless-stopped
+    pull_policy: always
     volumes:
       - /datas/dls/ddl:/datas/ddl
     environment:

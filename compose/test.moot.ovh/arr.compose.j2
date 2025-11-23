@@ -13,6 +13,7 @@ services:
     ports:
       - 7878:7878
     restart: unless-stopped
+    pull_policy: always
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
@@ -26,6 +27,7 @@ services:
     ports:
       - 8989:8989
     restart: unless-stopped
+    pull_policy: always
   rdtclient:
     image: rogerfar/rdtclient
     container_name: rdtclient
@@ -43,6 +45,7 @@ services:
     ports:
       - 6500:6500
     restart: unless-stopped
+    pull_policy: always
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
@@ -55,6 +58,7 @@ services:
     ports:
       - 9696:9696
     restart: unless-stopped
+    pull_policy: always
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
@@ -68,6 +72,7 @@ services:
     ports:
       - 6767:6767
     restart: unless-stopped
+    pull_policy: always
   overseerr:
     image: sctx/overseerr:latest
     container_name: overseerr
@@ -80,6 +85,7 @@ services:
     volumes:
       - /opt/apps/overseer/config:/app/config
     restart: unless-stopped
+    pull_policy: always
   maintainerr:
     image: ghcr.io/maintainerr/maintainerr:2 
     user: 1000:1000
@@ -90,4 +96,5 @@ services:
     ports:
       - 6246:6246 
     restart: unless-stopped
+    pull_policy: always
 ...

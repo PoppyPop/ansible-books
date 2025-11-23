@@ -5,6 +5,7 @@ services:
       - /opt/apps/trakt/plextraktsync:/app/config
     command: watch
     restart: unless-stopped
+    pull_policy: always
     environment:
       - PUID=10010
       - PGID=10008
@@ -13,7 +14,7 @@ services:
     image: ghcr.io/taxel/plextraktsync
     command: sync
     container_name: plextraktsync
-
+    pull_policy: always
     volumes:
       - /opt/apps/trakt/plextraktsync:/app/config
     environment:
@@ -25,6 +26,7 @@ services:
     container_name: scheduler
     command: daemon --docker
     restart: unless-stopped
+    pull_policy: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
