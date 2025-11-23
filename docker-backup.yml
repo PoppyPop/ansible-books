@@ -7,7 +7,8 @@
   vars:
     backup_dir: /backup/docker-apps
     backup_timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
-    apps_dir: /opt/apps
+    base_dir: /opt
+    apps_dir: "{{ base_dir }}/apps"
   tasks:
     # Common tasks - check container health
     - name: Get docker host info
@@ -141,7 +142,7 @@
     - name: Extract backup archive
       ansible.builtin.unarchive:
         src: "{{ latest_backup.path }}"
-        dest: /
+        dest: "{{ base_dir }}"
         remote_src: true
       tags: [restore]
 
