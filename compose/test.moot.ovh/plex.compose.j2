@@ -24,6 +24,19 @@ services:
       - /opt/apps/plex/transcode:/transcode
       - /datas/dls/media:/media
 
+  tautulli:
+    image: ghcr.io/tautulli/tautulli
+    container_name: tautulli
+    restart: unless-stopped
+    pull_policy: always
+    volumes:
+      - /opt/apps/tautulli:/config
+    environment:
+      - PUID=10010
+      - PGID=10008
+      - TZ=Europe/Paris
+    ports:
+      - 8181:8181
 
 networks:
   macvlan:
