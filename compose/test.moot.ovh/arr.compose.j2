@@ -90,7 +90,6 @@ services:
     image: ghcr.io/maintainerr/maintainerr:2 
     user: 1000:1000
     volumes:
-      - /opt/apps/maintainerr/config:/app/config
       - /opt/apps/maintainerr/data:/opt/data
     environment:
       - TZ=Europe/Paris
