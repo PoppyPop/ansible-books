@@ -13,11 +13,18 @@
     mode: '0644'
   notify: Restart networkd
 
-- name: Add MACVLAN to parent interface config
-  ansible.builtin.lineinfile:
-    path: "/etc/systemd/network/{{ macvlan_shim_parent_iface }}.network"
-    line: "MACVLAN={{ macvlan_shim_iface }}"
-    create: true
-    insertafter: EOF
+- name: Ensure drop-in directory exists for parent interface
+  ansible.builtin.file:
+    path: "/etc/systemd/network/{{ macvlan_shim_parent_iface }}.network.d"
+    state: directory
+    mode: '0755'
+
+- name: Add MACVLAN drop-in for parent interface
+  ansible.builtin.copy:
+    dest: "/etc/systemd/network/{{ macvlan_shim_parent_iface }}.network.d/10-macvlan-shim.conf"
     mode: '0644'
+    content: |
+      [Network]
+      MACVLAN={{ macvlan_shim_iface }}
+  notify: Restart networkd
 ...
