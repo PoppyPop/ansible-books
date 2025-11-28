@@ -19,7 +19,7 @@ sonarr:
         upgrade:
           allowed: true
           until_quality: WEB 2160p
-          until_score: 10000
+          until_score: 3000
         min_format_score: 0
         quality_sort: top
         qualities:
@@ -42,7 +42,7 @@ sonarr:
         upgrade:
           allowed: true
           until_quality: WEB 1080p
-          until_score: 10000
+          until_score: 3000
         min_format_score: 0
         quality_sort: top
         qualities:
@@ -187,7 +187,7 @@ radarr:
         upgrade:
           allowed: true
           until_quality: WEB 2160p
-          until_score: 10000
+          until_score: 3000
         min_format_score: 0
         quality_sort: top
         qualities:
