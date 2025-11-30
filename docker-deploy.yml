@@ -4,10 +4,14 @@
   become: true
   vars_files:
     - secrets.yaml
+  vars:
+    compose_dir: compose
+    compose_pattern: "*.j2"
+    compose_suffix: ".compose.j2"
   tasks:
     - name: Create folder - compose
       ansible.builtin.file:
-        path: compose
+        path: "{{ compose_dir }}"
         state: directory
         mode: "0775"
 
@@ -19,17 +23,17 @@
 
     - name: Find local compose files
       ansible.builtin.find:
-        paths: compose
+        paths: "{{ compose_dir }}"
         recurse: false
-        pattern: "*.j2"
+        pattern: "{{ compose_pattern }}"
       register: local_compose
       delegate_to: localhost
 
     - name: Find host compose files
       ansible.builtin.find:
-        paths: "{{ playbook_dir }}/compose/{{ inventory_hostname }}"
+        paths: "{{ playbook_dir }}/{{ compose_dir }}/{{ inventory_hostname }}"
         recurse: false
-        pattern: "*.j2"
+        pattern: "{{ compose_pattern }}"
       register: host_compose
       delegate_to: localhost
 
@@ -43,7 +47,7 @@
 
     - name: Find deployed compose files
       ansible.builtin.find:
-        paths: compose
+        paths: "{{ compose_dir }}"
         recurse: false
         file_type: directory
       register: deployed_compose
@@ -54,15 +58,30 @@
 
     - name: Clean local compose files
       ansible.builtin.set_fact:
-        proper_local_compose: "{{ local_compose.files | map(attribute='path') | map('basename') | map('regex_replace', '.compose.j2', '') | flatten }}"
+        proper_local_compose: "{{ local_compose.files | map(attribute='path') | map('basename') | map('regex_replace', compose_suffix, '') | flatten }}"
 
     - name: Clean host compose files
       ansible.builtin.set_fact:
-        proper_host_compose: "{{ host_compose.files | map(attribute='path') | map('basename') | map('regex_replace', '.compose.j2', '') | flatten }}"
+        proper_host_compose: "{{ host_compose.files | map(attribute='path') | map('basename') | map('regex_replace', compose_suffix, '') | flatten }}"
 
     - name: Remove old compose files
       ansible.builtin.include_tasks: tasks/remove-compose.yml
       loop: "{{ proper_deployed_compose | difference(proper_local_compose) | difference(proper_host_compose) }}"
+
+    - name: Find YAML files at root of compose directory
+      ansible.builtin.find:
+        paths: "{{ compose_dir }}"
+        recurse: false
+        patterns: "*.yaml,*.yml"
+        file_type: file
+      register: compose_yaml_files
+
+    - name: Delete YAML files at root of compose directory
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ compose_yaml_files.files }}"
+      when: compose_yaml_files.files | length > 0
 
     - name: Clean up dangling Docker images
       community.docker.docker_prune:
