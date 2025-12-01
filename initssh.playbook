@@ -190,6 +190,12 @@
       when: unifi_dns_wildcard_exists is defined and (not unifi_dns_wildcard_exists)
       tags: [dns]
 
+    - name: Activate SSHD
+      ansible.builtin.systemd_service:
+        name: "sshd"
+        enabled: true
+        state: "started"
+
   post_tasks:
     - name: Reboot | Reboot host if requested
       ansible.builtin.reboot:
