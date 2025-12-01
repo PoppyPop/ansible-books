@@ -1,7 +1,6 @@
 # from galaxy
 
 roles:
-  - name: geerlingguy.certbot
   - name: geerlingguy.docker
   - name: geerlingguy.firewall
   - name: geerlingguy.security

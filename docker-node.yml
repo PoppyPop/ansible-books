@@ -5,14 +5,10 @@
   vars_files:
     - secrets.yaml
   vars:
-    certbot_auto_renew: true
-    certbot_auto_renew_user: root
     firewall_flush_rules_and_chains: false
-    docker_users:
-      - ansible
 
   roles:
-    - geerlingguy.certbot
+    - certbot_local
     - geerlingguy.docker
 
   tasks:
@@ -21,27 +17,6 @@
         name:
           - python3-docker
         state: present
-
-    - name: Install Certbot Cloudflare
-      ansible.builtin.package:
-        name: python3-certbot-dns-cloudflare
-        state: present
-
-    - name: Create Certbot folder - /etc/letsencrypt
-      ansible.builtin.file:
-        path: /etc/letsencrypt
-        state: directory
-        owner: root
-        group: root
-        mode: "0700"
-
-    - name: Certbot Template
-      ansible.builtin.template:
-        src: "dnscloudflare.ini.j2"
-        dest: "/etc/letsencrypt/dnscloudflare.ini"
-        owner: root
-        group: root
-        mode: "0600"
 
     - name: Certbot | Generate Certificate
       ansible.builtin.command:

@@ -1,0 +1,72 @@
+---
+- name: Certbot | Install packages (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-certbot-dns-cloudflare
+    state: present
+    update_cache: true
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Certbot | Install packages (RedHat/Fedora)
+  ansible.builtin.dnf:
+    name:
+      - certbot
+      - python3-certbot-dns-cloudflare
+    state: present
+  when: ansible_facts.os_family in ['RedHat']
+
+
+- name: Certbot | Create letsencrypt directory
+  ansible.builtin.file:
+    path: /etc/letsencrypt
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Certbot | Deploy Cloudflare credentials
+  ansible.builtin.template:
+    src: dnscloudflare.ini.j2
+    dest: /etc/letsencrypt/dnscloudflare.ini
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Certbot | Install systemd service for renewal
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/certbot-renew.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Certbot Renew
+      Documentation=https://certbot.eff.org/
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/certbot renew --quiet --no-self-upgrade
+
+- name: Certbot | Install systemd timer for daily check
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/certbot-renew.timer
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Daily Certbot Renew
+
+      [Timer]
+      OnCalendar=daily
+      Persistent=true
+
+      [Install]
+      WantedBy=timers.target
+
+- name: Certbot | Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Certbot | Enable and start renewal timer
+  ansible.builtin.systemd:
+    name: certbot-renew.timer
+    enabled: true
+    state: started
