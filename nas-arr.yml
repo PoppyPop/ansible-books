@@ -47,6 +47,8 @@
           - sonarr-py
           - radarr-py
           - prowlarr-py
+        virtualenv: "{{ lookup('env', 'HOME') }}/.ansible-venv"
+        virtualenv_command: python3 -m venv
       tags: prerequisites
       delegate_to: localhost
 
