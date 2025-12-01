@@ -67,12 +67,14 @@
 - name: "{{ compose_name }} - Deploy"
   community.docker.docker_compose_v2:
     project_src: "{{ compose_dir }}/{{ compose_name }}"
+  ignore_errors: true
   register: compose_deploy
 
 - name: "{{ compose_name }} - Restat compose if compose_modified"
   community.docker.docker_compose_v2:
     project_src: "{{ compose_dir }}/{{ compose_name }}"
     state: restarted
+  ignore_errors: true
   tags:
     - skip_ansible_lint
   when: compose_modified is changed and compose_deploy is not changed

@@ -68,15 +68,15 @@
       ansible.builtin.include_tasks: tasks/remove-compose.yml
       loop: "{{ proper_deployed_compose | difference(proper_local_compose) | difference(proper_host_compose) }}"
 
-    - name: Find YAML files at root of compose directory
+    - name: Find compose files at root of compose directory
       ansible.builtin.find:
         paths: "{{ compose_dir }}"
         recurse: false
-        patterns: "*.yaml,*.yml"
+        patterns: "*.compose"
         file_type: file
       register: compose_yaml_files
 
-    - name: Delete YAML files at root of compose directory
+    - name: Delete compose files at root of compose directory
       ansible.builtin.file:
         path: "{{ item.path }}"
         state: absent
