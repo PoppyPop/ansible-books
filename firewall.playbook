@@ -1,70 +1,41 @@
 ---
-- name: Setup nftables firewall
+- name: Setup firewalld firewall
   hosts: all
   become: true
   vars:
     ssh_port: 22
   tasks:
-    - name: Install nftables
+    - name: Install firewalld
       ansible.builtin.package:
-        name: nftables
+        name: firewalld
         state: present
 
-    - name: Enable nftables service
+    - name: Enable and start firewalld service
       ansible.builtin.systemd:
-        name: nftables
+        name: firewalld
         enabled: true
+        state: started
 
-    - name: Create base nftables configuration
-      ansible.builtin.copy:
-        dest: /etc/nftables.conf
-        mode: "0644"
-        content: |
-          #!/usr/sbin/nft -f
+    - name: Set default zone to drop
+      ansible.posix.firewalld:
+        zone: drop
+        state: present
+        permanent: true
+        immediate: true
 
-          flush ruleset
+    - name: Allow SSH in drop zone
+      ansible.posix.firewalld:
+        zone: drop
+        port: "{{ ssh_port }}/tcp"
+        state: enabled
+        permanent: true
+        immediate: true
 
-          table inet filter {
-            chain input {
-              type filter hook input priority 0; policy drop;
-
-              # Allow established/related connections
-              ct state established,related accept
-
-              # Allow loopback
-              iif lo accept
-
-              # Allow SSH
-              tcp dport {{ ssh_port }} accept
-
-              # Allow ICMP (ping)
-              ip protocol icmp accept
-              ip6 nexthdr icmpv6 accept
-
-              # Additional firewall rules (managed dynamically)
-              include "/etc/nftables.d/*.nft"
-            }
-
-            chain forward {
-              type filter hook forward priority 0; policy drop;
-            }
-
-            chain output {
-              type filter hook output priority 0; policy accept;
-            }
-          }
-      notify: Reload nftables
-
-    - name: Create nftables.d directory
+    - name: Create compose-ports directory
       ansible.builtin.file:
-        path: /etc/nftables.d
+        path: /etc/firewalld/compose-ports
         state: directory
         mode: "0755"
-
-    - name: Start nftables service
-      ansible.builtin.systemd:
-        name: nftables
-        state: started
 
   handlers:
     - name: Import common handlers

@@ -81,4 +81,3 @@
 
 - name: "{{ compose_name }} - Add firewall rules for exposed ports"
   ansible.builtin.include_tasks: tasks/add-firewall-ports.yml
-

@@ -4,6 +4,11 @@
     name: nftables
     state: reloaded
 
+- name: Reload firewalld
+  ansible.builtin.systemd:
+    name: firewalld
+    state: reloaded
+
 - name: Restart Docker
   ansible.builtin.service:
     name: docker

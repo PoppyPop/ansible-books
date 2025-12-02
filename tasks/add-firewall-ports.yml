@@ -33,17 +33,35 @@
   changed_when: false
   failed_when: false
 
-- name: Create firewall rules file for {{ compose_name }}
+- name: Add TCP firewall rules for {{ compose_name }}
+  ansible.posix.firewalld:
+    zone: drop
+    port: "{{ item }}/tcp"
+    state: enabled
+    permanent: true
+    immediate: true
+  loop: "{{ compose_tcp_ports.stdout_lines }}"
+  when: compose_tcp_ports.stdout_lines | length > 0
+
+- name: Add UDP firewall rules for {{ compose_name }}
+  ansible.posix.firewalld:
+    zone: drop
+    port: "{{ item }}/udp"
+    state: enabled
+    permanent: true
+    immediate: true
+  loop: "{{ compose_udp_ports.stdout_lines }}"
+  when: compose_udp_ports.stdout_lines | length > 0
+
+- name: Store ports for {{ compose_name }} for cleanup tracking
   ansible.builtin.copy:
-    dest: /etc/nftables.d/{{ compose_name }}.nft
+    dest: /etc/firewalld/compose-ports/{{ compose_name }}.txt
     content: |
-      # {{ compose_name }} ports
-      {% if compose_tcp_ports.stdout_lines | length > 0 %}
-      tcp dport { {{ compose_tcp_ports.stdout_lines | join(', ') }} } accept
-      {% endif %}
-      {% if compose_udp_ports.stdout_lines | length > 0 %}
-      udp dport { {{ compose_udp_ports.stdout_lines | join(', ') }} } accept
-      {% endif %}
+      {% for port in compose_tcp_ports.stdout_lines %}
+      {{ port }}/tcp
+      {% endfor %}
+      {% for port in compose_udp_ports.stdout_lines %}
+      {{ port }}/udp
+      {% endfor %}
     mode: "0644"
   when: (compose_tcp_ports.stdout_lines | length > 0) or (compose_udp_ports.stdout_lines | length > 0)
-  notify: Reload nftables
