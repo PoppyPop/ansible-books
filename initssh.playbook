@@ -68,7 +68,7 @@
         - ansible_facts.os_family in ['RedHat']
 
     - name: SSH | Add remote host key to local known_hosts
-      ansible.builtin.command: "ssh-keyscan -H {{ inventory_hostname }},{{ ansible_default_ipv4.address }}"
+      ansible.builtin.command: "ssh-keyscan -t ed25519 {{ inventory_hostname }},{{ ansible_default_ipv4.address }}"
       register: ssh_keyscan
       changed_when: false
       delegate_to: localhost
@@ -87,7 +87,6 @@
           - sudo
           - nano
           - screen
-          - haveged
           - jq
           - yq
         state: present

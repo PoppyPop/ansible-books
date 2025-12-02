@@ -7,7 +7,6 @@ roles:
   - name: geerlingguy.clamav
   - name: geerlingguy.pip
   - name: sbaerlocher.qemu-guest-agent
-  - name: robertdebock.haveged
   - name: exploide.dnf-automatic
   - name: robertdebock.fail2ban
   - name: hudecof.banners

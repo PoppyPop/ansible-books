@@ -39,7 +39,6 @@
         src: editor.sh
         dest: /etc/profile.d/editor.sh
   roles:
-    - role: robertdebock.haveged
     - role: dev-sec.ssh-hardening
       when: ansible_facts['distribution'] != 'Fedora'
     - role: dev-sec.ssh-hardening

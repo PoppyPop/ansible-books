@@ -1,0 +1,128 @@
+---
+- name: Create LXC container on Proxmox
+  hosts: pve2.moot.ovh
+  become: true
+  vars:
+    lxc_id: 105
+    lxc_hostname: test.moot.ovh
+    lxc_ip: 10.0.2.105/20
+    lxc_gateway: 10.0.0.1
+    lxc_memory: 8192
+    lxc_cores: 4
+    lxc_template: "isos:vztmpl/fedora-42-default_20250428_amd64.tar.xz"
+    lxc_storage: data2
+    lxc_disk_size: 32
+    ssh_public_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/ansiblekey.pub') }}"
+
+  tasks:
+    - name: Check if LXC container already exists
+      ansible.builtin.command:
+        cmd: pct status {{ lxc_id }}
+      register: lxc_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Write SSH public key to temp file
+      ansible.builtin.copy:
+        content: "{{ ssh_public_key }}"
+        dest: "/tmp/lxc_{{ lxc_id }}_ssh.pub"
+        mode: "0644"
+      when: lxc_exists.rc != 0
+
+    - name: Create LXC container
+      ansible.builtin.command:
+        cmd: >
+          pct create {{ lxc_id }}
+          {{ lxc_template }}
+          --hostname {{ lxc_hostname }}
+          --memory {{ lxc_memory }}
+          --swap 0
+          --cores {{ lxc_cores }}
+          --rootfs {{ lxc_storage }}:{{ lxc_disk_size }}
+          --net0 name=eth0,bridge=vmbr0,ip={{ lxc_ip }},gw={{ lxc_gateway }},ip6=auto
+          --ostype fedora
+          --unprivileged 0
+          --onboot 1
+          --features mount=nfs;cifs,nesting=1
+          --ssh-public-keys /tmp/lxc_{{ lxc_id }}_ssh.pub
+      when: lxc_exists.rc != 0
+
+    - name: Remove temp SSH key file
+      ansible.builtin.file:
+        path: "/tmp/lxc_{{ lxc_id }}_ssh.pub"
+        state: absent
+
+    - name: Configure AppArmor to unconfined
+      ansible.builtin.command:
+        cmd: pct set {{ lxc_id }} -lxc.apparmor.profile=unconfined
+      when: lxc_exists.rc != 0
+
+    - name: Drop no capabilities
+      ansible.builtin.command:
+        cmd: pct set {{ lxc_id }} -lxc.cap.drop=
+      when: lxc_exists.rc != 0
+
+    - name: Start LXC container
+      ansible.builtin.command:
+        cmd: pct start {{ lxc_id }}
+      register: lxc_start
+      failed_when: false
+      changed_when: lxc_start.rc == 0
+
+    - name: Wait for container to be running
+      ansible.builtin.command:
+        cmd: pct status {{ lxc_id }}
+      register: lxc_status
+      until: "'running' in lxc_status.stdout"
+      retries: 10
+      delay: 2
+      changed_when: false
+
+    - name: Apply Fedora 42 systemd-homed-firstboot fix
+      ansible.builtin.command:
+        cmd: >
+          pct exec {{ lxc_id }} -- bash -c "
+          set -e;
+          sed -i 's/homectl firstboot --prompt-new-user/homectl firstboot/g' /usr/lib/systemd/system/systemd-homed-firstboot.service;
+          systemctl daemon-reload"
+      when: lxc_exists.rc != 0
+
+    - name: Install and enable SSH server
+      ansible.builtin.command:
+        cmd: >
+          pct exec {{ lxc_id }} -- bash -c "
+          set -e;
+          dnf install -y openssh-server;
+          systemctl enable --now sshd"
+      when: lxc_exists.rc != 0
+
+    - name: Reboot container to apply fix
+      ansible.builtin.command:
+        cmd: pct reboot {{ lxc_id }}
+      when: lxc_exists.rc != 0
+
+    - name: Wait for container to be running again
+      ansible.builtin.command:
+        cmd: pct status {{ lxc_id }}
+      register: lxc_status_reboot
+      until: "'running' in lxc_status_reboot.stdout"
+      retries: 15
+      delay: 3
+      changed_when: false
+      when: lxc_exists.rc != 0
+
+    - name: Reboot container second time to finalize setup
+      ansible.builtin.command:
+        cmd: pct reboot {{ lxc_id }}
+      when: lxc_exists.rc != 0
+
+    - name: Display container information
+      ansible.builtin.debug:
+        msg: |
+          LXC Container {{ lxc_id }} ({{ lxc_hostname }}) created successfully
+          IP: {{ lxc_ip }}
+          Gateway: {{ lxc_gateway }}
+          Memory: {{ lxc_memory }}MB
+          Cores: {{ lxc_cores }}
+          Features: privileged, nesting, nfs, smb
+          Access: ssh root@10.0.2.105
