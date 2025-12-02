@@ -23,6 +23,7 @@ services:
       # Providers
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik"
       - "--providers.file.directory=/dynamic"
       - "--providers.file.watch=true"
 

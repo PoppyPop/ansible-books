@@ -11,13 +11,15 @@
     - certbot_local
     - geerlingguy.docker
 
-  tasks:
+  pre_tasks:
     - name: Install the latest version of python3-docker
       ansible.builtin.package:
         name:
           - python3-docker
+          - gnupg2
         state: present
 
+  tasks:
     - name: Certbot | Generate Certificate
       ansible.builtin.command:
         argv:

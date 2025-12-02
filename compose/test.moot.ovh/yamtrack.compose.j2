@@ -13,6 +13,13 @@ services:
       - /opt/apps/yamtrack/db:/yamtrack/db
     ports:
       - "8282:8000"
+    networks:
+      - default
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.yamtrack.rule=Host(`yamtrack.{{inventory_hostname}}`)"
+      - "traefik.http.services.yamtrack.loadbalancer.server.port=8000"
 
   redis:
     container_name: yamtrack-redis
@@ -23,3 +30,7 @@ services:
 
 volumes:
   redis_data:
+
+networks:
+  traefik:
+    external: true
