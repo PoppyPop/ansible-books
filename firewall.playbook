@@ -1,0 +1,71 @@
+---
+- name: Setup nftables firewall
+  hosts: all
+  become: true
+  vars:
+    ssh_port: 22
+  tasks:
+    - name: Install nftables
+      ansible.builtin.package:
+        name: nftables
+        state: present
+
+    - name: Enable nftables service
+      ansible.builtin.systemd:
+        name: nftables
+        enabled: true
+
+    - name: Create base nftables configuration
+      ansible.builtin.copy:
+        dest: /etc/nftables.conf
+        mode: "0644"
+        content: |
+          #!/usr/sbin/nft -f
+
+          flush ruleset
+
+          table inet filter {
+            chain input {
+              type filter hook input priority 0; policy drop;
+
+              # Allow established/related connections
+              ct state established,related accept
+
+              # Allow loopback
+              iif lo accept
+
+              # Allow SSH
+              tcp dport {{ ssh_port }} accept
+
+              # Allow ICMP (ping)
+              ip protocol icmp accept
+              ip6 nexthdr icmpv6 accept
+
+              # Additional firewall rules (managed dynamically)
+              include "/etc/nftables.d/*.nft"
+            }
+
+            chain forward {
+              type filter hook forward priority 0; policy drop;
+            }
+
+            chain output {
+              type filter hook output priority 0; policy accept;
+            }
+          }
+      notify: Reload nftables
+
+    - name: Create nftables.d directory
+      ansible.builtin.file:
+        path: /etc/nftables.d
+        state: directory
+        mode: "0755"
+
+    - name: Start nftables service
+      ansible.builtin.systemd:
+        name: nftables
+        state: started
+
+  handlers:
+    - name: Import common handlers
+      ansible.builtin.import_tasks: handlers/main.yml

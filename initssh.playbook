@@ -81,21 +81,15 @@
       delegate_to: localhost
 
   tasks:
-    - name: Install sudo
+    - name: Install base packages
       ansible.builtin.package:
-        name: sudo
-        state: present
-    - name: Install nano
-      ansible.builtin.package:
-        name: nano
-        state: present
-    - name: Install screen
-      ansible.builtin.package:
-        name: screen
-        state: present
-    - name: Install haveged
-      ansible.builtin.package:
-        name: haveged
+        name: 
+          - sudo
+          - nano
+          - screen
+          - haveged
+          - jq
+          - yq
         state: present
     - name: Make sure we have a 'wheel' group
       group:

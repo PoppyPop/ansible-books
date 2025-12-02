@@ -83,7 +83,7 @@
         path: "{{ item.path }}"
         state: absent
       loop: "{{ compose_yaml_files.files }}"
-      when: 
+      when:
         - compose_yaml_files.files | length > 0
         - deploy_service == 'all'
 
@@ -99,3 +99,7 @@
       ansible.builtin.debug:
         msg: "Reclaimed {{ docker_prune_result.space_reclaimed | human_readable }} from dangling images"
       when: docker_prune_result.space_reclaimed is defined and docker_prune_result.space_reclaimed > 0
+
+  handlers:
+    - name: Import common handlers
+      ansible.builtin.import_tasks: handlers/main.yml

@@ -1,0 +1,49 @@
+---
+- name: Extract TCP ports from compose file
+  ansible.builtin.shell: |
+    set -e -o pipefail
+    cd "{{ compose_dir }}/{{ compose_name }}"
+    docker compose config 2>/dev/null | \
+    yq eval '.services.[].ports[] | select(. != null) | 
+      (if type == "string" then . else .published + ":" + .target + "/" + (.protocol // "tcp") end) | 
+      select(. | test("/(tcp|$)")) | 
+      split(":")[0] | 
+      select(. | test("^[0-9]+$"))' - 2>/dev/null | \
+    sort -u
+  args:
+    executable: /bin/bash
+  register: compose_tcp_ports
+  changed_when: false
+  failed_when: false
+
+- name: Extract UDP ports from compose file
+  ansible.builtin.shell: |
+    set -e -o pipefail
+    cd "{{ compose_dir }}/{{ compose_name }}"
+    docker compose config 2>/dev/null | \
+    yq eval '.services.[].ports[] | select(. != null) | 
+      (if type == "string" then . else .published + ":" + .target + "/" + (.protocol // "tcp") end) | 
+      select(. | test("/udp")) | 
+      split(":")[0] | 
+      select(. | test("^[0-9]+$"))' - 2>/dev/null | \
+    sort -u
+  args:
+    executable: /bin/bash
+  register: compose_udp_ports
+  changed_when: false
+  failed_when: false
+
+- name: Create firewall rules file for {{ compose_name }}
+  ansible.builtin.copy:
+    dest: /etc/nftables.d/{{ compose_name }}.nft
+    content: |
+      # {{ compose_name }} ports
+      {% if compose_tcp_ports.stdout_lines | length > 0 %}
+      tcp dport { {{ compose_tcp_ports.stdout_lines | join(', ') }} } accept
+      {% endif %}
+      {% if compose_udp_ports.stdout_lines | length > 0 %}
+      udp dport { {{ compose_udp_ports.stdout_lines | join(', ') }} } accept
+      {% endif %}
+    mode: "0644"
+  when: (compose_tcp_ports.stdout_lines | length > 0) or (compose_udp_ports.stdout_lines | length > 0)
+  notify: Reload nftables

@@ -1,0 +1,6 @@
+---
+- name: Remove firewall rules file for {{ item }}
+  ansible.builtin.file:
+    path: /etc/nftables.d/{{ item }}.nft
+    state: absent
+  notify: Reload nftables

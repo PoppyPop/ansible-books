@@ -49,8 +49,15 @@
       notify: Restart Docker
       when: "'infra' not in group_names"
 
+    - name: Create dockernode web ports file
+      ansible.builtin.copy:
+        dest: /etc/nftables.d/dockernode.nft
+        content: |
+          # Docker node web ports
+          tcp dport { 80, 443 } accept
+          udp dport 443 accept
+        mode: "0644"
+
   handlers:
-    - name: Restart Docker
-      ansible.builtin.service:
-        name: docker
-        state: restarted
+    - name: Import common handlers
+      ansible.builtin.import_tasks: handlers/main.yml
