@@ -1,7 +1,4 @@
 ---
-- name: Remove firewall rules for {{ item }}
-  ansible.builtin.include_tasks: tasks/remove-firewall-ports.yml
-
 - name: Docker compose down on {{ item }}
   community.docker.docker_compose_v2:
     project_src: "compose/{{ item }}"

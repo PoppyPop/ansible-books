@@ -68,7 +68,7 @@
         - ansible_facts.os_family in ['RedHat']
 
     - name: SSH | Add remote host key to local known_hosts
-      ansible.builtin.command: "ssh-keyscan -t ed25519 {{ inventory_hostname }},{{ ansible_default_ipv4.address }}"
+      ansible.builtin.command: "ssh-keyscan -t ecdsa,ed25519 {{ inventory_hostname }},{{ ansible_default_ipv4.address }}"
       register: ssh_keyscan
       changed_when: false
       delegate_to: localhost
@@ -185,7 +185,7 @@
 
     - name: Activate SSHD
       ansible.builtin.systemd_service:
-        name: "sshd"
+        name: "sshd.socket"
         enabled: true
         state: "started"
 

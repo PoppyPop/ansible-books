@@ -2,8 +2,7 @@
 - name: Setup firewalld firewall
   hosts: all
   become: true
-  vars:
-    ssh_port: 22
+
   tasks:
     - name: Install firewalld
       ansible.builtin.package:
@@ -16,26 +15,28 @@
         enabled: true
         state: started
 
-    - name: Set default zone to drop
-      ansible.posix.firewalld:
-        zone: drop
-        state: present
-        permanent: true
-        immediate: true
+    - name: Enable and start nftables service
+      ansible.builtin.systemd:
+        name: nftables
+        enabled: true
+        state: started
 
-    - name: Allow SSH in drop zone
+    - name: Set default zone to internal
+      ansible.builtin.command:
+        cmd: firewall-cmd --set-default-zone=internal
+
+    - name: Allow SSH in internal zone
       ansible.posix.firewalld:
-        zone: drop
-        port: "{{ ssh_port }}/tcp"
+        zone: internal
+        service: ssh
         state: enabled
         permanent: true
         immediate: true
 
-    - name: Create compose-ports directory
-      ansible.builtin.file:
-        path: /etc/firewalld/compose-ports
-        state: directory
-        mode: "0755"
+    - name: Reboot host to apply firewall changes
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by firewall.playbook"
+        reboot_timeout: 600
 
   handlers:
     - name: Import common handlers

@@ -52,14 +52,18 @@
         path: "/tmp/lxc_{{ lxc_id }}_ssh.pub"
         state: absent
 
-    - name: Configure AppArmor to unconfined
-      ansible.builtin.command:
-        cmd: pct set {{ lxc_id }} -lxc.apparmor.profile=unconfined
+    - name: Apparmor unconfined
+      ansible.builtin.lineinfile:
+        path: /etc/pve/lxc/{{ lxc_id }}.conf
+        regexp: '^lxc.apparmor.profile: unconfined'
+        line: 'lxc.apparmor.profile: unconfined'
       when: lxc_exists.rc != 0
 
     - name: Drop no capabilities
-      ansible.builtin.command:
-        cmd: pct set {{ lxc_id }} -lxc.cap.drop=
+      ansible.builtin.lineinfile:
+        path: /etc/pve/lxc/{{ lxc_id }}.conf
+        regexp: '^lxc.cap.drop:'
+        line: 'lxc.cap.drop:'
       when: lxc_exists.rc != 0
 
     - name: Start LXC container
@@ -93,7 +97,8 @@
           pct exec {{ lxc_id }} -- bash -c "
           set -e;
           dnf install -y openssh-server;
-          systemctl enable --now sshd"
+          systemctl disable sshd.service;
+          systemctl enable --now sshd.socket"
       when: lxc_exists.rc != 0
 
     - name: Reboot container to apply fix
@@ -109,11 +114,6 @@
       retries: 15
       delay: 3
       changed_when: false
-      when: lxc_exists.rc != 0
-
-    - name: Reboot container second time to finalize setup
-      ansible.builtin.command:
-        cmd: pct reboot {{ lxc_id }}
       when: lxc_exists.rc != 0
 
     - name: Display container information

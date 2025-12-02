@@ -78,6 +78,3 @@
   tags:
     - skip_ansible_lint
   when: compose_modified is changed and compose_deploy is not changed
-
-- name: "{{ compose_name }} - Add firewall rules for exposed ports"
-  ansible.builtin.include_tasks: tasks/add-firewall-ports.yml
