@@ -1,6 +1,6 @@
 # Rôle Ansible : shares
 
-Ce rôle permet de gérer automatiquement des partages SMB et NFS à partir d’une configuration unique.  
+Ce rôle permet de gérer automatiquement des partages SMB et NFS à partir d’une configuration unique.
 Il crée les fichiers de configuration appropriés, met à jour les fichiers système et supprime les entrées obsolètes.
 
 - Synchronisation complète SMB (création + include + nettoyage)
@@ -24,7 +24,7 @@ shares:
 
 Chaque partage :
 
-- est exporté en SMB via un fichier dédié :  
+- est exporté en SMB via un fichier dédié :
   /etc/samba/shares/<safe_name>.conf
 
 - est exporté en NFS dans /etc/exports avec des options fixes

@@ -10,12 +10,12 @@
     - isoFile: "/isos/template/iso/focal-server-cloudimg-amd64.img"
     - dataLvm: "local-zfs"
   tasks:
-    - name: "Create template {{ newVmId }} - {{ newVmName }}" 
-      shell: qm create {{ newVmId }} --memory 2048 --net0 virtio,bridge=vmbr0 --name {{ newVmName }} 
-    - name: "{{ newVmId }} Copy disk {{ isoFile }}"  
+    - name: "Create template {{ newVmId }} - {{ newVmName }}"
+      shell: qm create {{ newVmId }} --memory 2048 --net0 virtio,bridge=vmbr0 --name {{ newVmName }}
+    - name: "{{ newVmId }} Copy disk {{ isoFile }}"
       shell: qm importdisk {{ newVmId }} {{ isoFile }}  {{ dataLvm }}
     - name: "{{ newVmId }} Add disk"
-      shell: qm set {{ newVmId }} --scsihw virtio-scsi-pci --scsi0 {{ dataLvm }}:vm-{{ newVmId }}-disk-0    
+      shell: qm set {{ newVmId }} --scsihw virtio-scsi-pci --scsi0 {{ dataLvm }}:vm-{{ newVmId }}-disk-0
     - name: "{{ newVmId }} Misc Params"
       shell: qm set {{ newVmId }} --ide2 {{ dataLvm }}:cloudinit --boot c --bootdisk scsi0 --serial0 socket --vga serial0 --agent enabled=1
     - name: "{{ newVmId }} template"

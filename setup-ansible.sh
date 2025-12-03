@@ -8,7 +8,7 @@ VENV_DIR=".venv"
 # --------------------------------------------------------------------
 install_debian_packages() {
     echo "📦 Vérification des paquets Debian requis..."
-    
+
     # Check if running as root or with sudo capability
     if [[ $EUID -ne 0 ]]; then
         if command -v sudo &> /dev/null; then
@@ -21,7 +21,7 @@ install_debian_packages() {
     else
         SUDO=""
     fi
-    
+
     # Detect if this is a Debian-based system
     if [[ -f /etc/debian_version ]]; then
         echo "🐧 Système Debian détecté, installation des dépendances..."
@@ -35,7 +35,7 @@ install_debian_packages() {
             libffi-dev \
             curl
         echo "✅ Paquets Debian installés."
-        
+
             # Install uv if not already present
             if ! command -v uv &> /dev/null; then
                 echo "📦 Installation d'uv..."

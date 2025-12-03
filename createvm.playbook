@@ -17,12 +17,12 @@
     - newVmGw: "10.0.1.1"
     - newVmId: "{{ newVmIP.split('.')[2] }}{{ '%03d' | format(newVmIP.split('.')[3]|int) }}"
   tasks:
-    - name: "Clone VM from {{ baseVmId }} to {{ newVmId }}" 
+    - name: "Clone VM from {{ baseVmId }} to {{ newVmId }}"
       shell: qm clone {{ baseVmId }} {{ newVmId }} -name {{ newVmFqdn }}
-    - name: "{{ newVmId }} Resize to {{ newVmHDSize }} Go"  
+    - name: "{{ newVmId }} Resize to {{ newVmHDSize }} Go"
       shell: qm resize {{ newVmId }} scsi0 +{{ newVmHDSize }}G
     - name: "{{ newVmId }} Set : {{ newVmCores }}cores / {{ newVmMem }}memory / boot"
-      shell: qm set {{ newVmId }} --cores {{ newVmCores }} --memory {{ newVmMem }} --onboot 1     
+      shell: qm set {{ newVmId }} --cores {{ newVmCores }} --memory {{ newVmMem }} --onboot 1
     - name: "{{ newVmId }} Set : CloudInit {{ newVmIP }} - {{ newVmGw }}"
       shell: qm set {{ newVmId }} --ciuser ansible --cipassword ansible --ipconfig0 ip={{ newVmIP }}/{{ newVmMask }},gw={{ newVmGw }}
     - name: Copy SSH keys file
@@ -34,9 +34,9 @@
     - name: Remove SSH keys file
       file:
         path: /tmp/sshvm.pub
-        state: absent 
+        state: absent
     - name: "{{ newVmId }} Start"
-      shell: qm start {{ newVmId }}     
+      shell: qm start {{ newVmId }}
     - name: Update dns {{ newVmFqdn }} A to {{ newVmIP }}"
       nsupdate:
         key_name: "{{ ddns_key_name }}"

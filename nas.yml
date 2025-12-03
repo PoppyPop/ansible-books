@@ -195,7 +195,7 @@
         state: present
         entity: "{{ admin_group }}"
         etype: group
-        permissions: rwX 
+        permissions: rwX
 
     - name: Create traefik network
       community.docker.docker_network:

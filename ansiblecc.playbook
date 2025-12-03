@@ -6,10 +6,10 @@
   tasks:
     - name: Replace sftp by scp in ansible conf
       replace:
-        path: /etc/ansible/ansible.cfg 
+        path: /etc/ansible/ansible.cfg
         regexp: '(#?scp_if_ssh = (?:smart|[Ff]alse))'
         replace: 'scp_if_ssh = True'
-    - name: Install vulsctl        
+    - name: Install vulsctl
       git:
         repo: 'https://github.com/vulsio/vulsctl.git'
         dest: /opt/vulsctl

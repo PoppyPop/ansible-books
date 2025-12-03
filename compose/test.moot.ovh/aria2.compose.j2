@@ -45,7 +45,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.ariang.rule=Host(`ariang.{{inventory_hostname}}`)"
       - "traefik.http.services.ariang.loadbalancer.server.port=6880"
- 
+
   automated-dl:
     container_name: automated-dl
     image: poppypop/automated-dl:latest

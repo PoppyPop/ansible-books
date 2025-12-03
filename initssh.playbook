@@ -83,7 +83,7 @@
   tasks:
     - name: Install base packages
       ansible.builtin.package:
-        name: 
+        name:
           - sudo
           - nano
           - screen
@@ -113,10 +113,10 @@
         regexp: '^%wheel'
         line: '%wheel ALL=(ALL) NOPASSWD: ALL'
         validate: 'visudo -cf %s'
-          
+
     - name: Ensure hostname set
       hostname: name={{ inventory_hostname }}
-    
+
     - name: Ensure hostname is in /etc/hosts
       lineinfile:
         dest=/etc/hosts

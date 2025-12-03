@@ -11,7 +11,7 @@ Path:
   | └── <rep with name of file/archive>
   └── usenet
   | ├── movies
-  | └── series 
+  | └── series
   ├── games
   └── others
 

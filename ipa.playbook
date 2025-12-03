@@ -5,13 +5,13 @@
   vars_files:
     - secrets.yaml
   tasks:
-    - name: Install IPA       
-      package: 
-        name: 
+    - name: Install IPA
+      package:
+        name:
           - freeipa-server
           - freeipa-server-dns
           - freeipa-server-trust-ad
-          - certbot 
+          - certbot
           - python3-certbot-dns-cloudflare
           - git
         state: latest
@@ -48,7 +48,7 @@
       debug:
         msg:
           - "{{ ipa_setup.stdout }}"
-      when: not ipa_config.stat.exists   
+      when: not ipa_config.stat.exists
     - name: Copy DDNS key
       template:
         src: tsig.conf.j2
@@ -74,10 +74,10 @@
       git:
         repo: 'https://github.com/PoppyPop/certbot.git'
         dest: /opt/poppypop-certbot
-      when: not certbot_present.stat.exists   
+      when: not certbot_present.stat.exists
     - name: Install certbot certs
       command: /opt/poppypop-certbot/freeipa/install-cert.sh {{ certbot_mail }}
-      when: not certbot_present.stat.exists  
+      when: not certbot_present.stat.exists
     - name: Install certbot certs
       command: /opt/poppypop-certbot/freeipa/install-renew-service.sh
       when: not certbot_present.stat.exists
@@ -102,19 +102,19 @@
       - "123"
     - docker_users:
       - ansible
-  roles:           
+  roles:
     - geerlingguy.firewall
     - geerlingguy.docker
-        
+
 - hosts: ipareplica
   become: yes
   tasks:
-    - name: Install IPA       
-      package: 
-        name: 
+    - name: Install IPA
+      package:
+        name:
           - freeipa-server
           - freeipa-server-dns
-          - certbot 
+          - certbot
           - python3-certbot-dns-cloudflare
         state: latest
     - name: Update cloud.cfg
@@ -148,7 +148,7 @@
       debug:
         msg:
           - "{{ ipa_setup.stdout }}"
-      when: not ipa_config.stat.exists   
+      when: not ipa_config.stat.exists
     - name: Copy DDNS key
       template:
         src: tsig.conf.j2
@@ -174,10 +174,10 @@
       git:
         repo: 'https://github.com/PoppyPop/certbot.git'
         dest: /opt/poppypop-certbot
-      when: not certbot_present.stat.exists   
+      when: not certbot_present.stat.exists
     - name: Install certbot certs
       command: /opt/poppypop-certbot/freeipa/install-cert.sh {{ certbot_mail }}
-      when: not certbot_present.stat.exists  
+      when: not certbot_present.stat.exists
     - name: Install certbot certs
       command: /opt/poppypop-certbot/freeipa/install-renew-service.sh
       when: not certbot_present.stat.exists
@@ -200,5 +200,5 @@
       - "464"
       - "53"
       - "123"
-  roles:           
+  roles:
     - geerlingguy.firewall

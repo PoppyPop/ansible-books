@@ -15,8 +15,8 @@ nfsConfFile='/etc/exports'
 ### don't modify from here unless you know what you are doing ####
 
 function CleanSambaConfFile {
-	if [ -f $smbBase/smb.d/$shareName.share ] 
-	then 
+	if [ -f $smbBase/smb.d/$shareName.share ]
+	then
 		if ! rm $smbBase/smb.d/$shareName.share
 		then
 			echo -e $"There is an ERROR Cleaning Samba"
@@ -29,12 +29,12 @@ function CleanSambaConfFile {
 
 function SetSambaConfFile {
 	right="$groupSmb,$user"
-	if [[ "${right:0:1}" == "," ]] ; then 
+	if [[ "${right:0:1}" == "," ]] ; then
 		right="${right:-1}"
 	fi
-	
+
 	# the space before -1 is mandatory
-	if [[ "${right: -1}" == "," ]] ; then 
+	if [[ "${right: -1}" == "," ]] ; then
 		right="${right:0:-1}"
 	fi
 
@@ -63,7 +63,7 @@ function ReloadSambaConfFile {
 	else
 		echo "" > $smbBase/includes.conf
 	fi
-	
+
 	if ! smbcontrol smbd reload-config
 	then
 		echo -e $"There is an ERROR Reloading Samba"
@@ -111,7 +111,7 @@ function SetAcl {
 		  setfacl -R -m g:$acl:rwX $sharePath
 		done
 	fi
-	
+
 	if [ "$user" != "" ]; then
 		export IFS=","
 		for acl in $user; do
@@ -128,7 +128,7 @@ function RemoveAcl {
 		  setfacl -R -x g:$acl $sharePath
 		done
 	fi
-	
+
 	if [ "$user" != "" ]; then
 		export IFS=","
 		for acl in $user; do
@@ -170,8 +170,8 @@ do
 done
 
 group="$group,$defaultGroup"
-if [[ ${group:0:1} == "," ]] ; then 
-	group=${group:1} 
+if [[ ${group:0:1} == "," ]] ; then
+	group=${group:1}
 fi
 
 export IFS=","
@@ -183,7 +183,7 @@ groupSmb=${groupSmb:1}
 
 #check conf file/directory
 if [ ! -d "$smbBase/smb.d/" ]; then
-	if ! mkdir "$smbBase/smb.d/"; then 
+	if ! mkdir "$smbBase/smb.d/"; then
 		exit 90
 	fi
 fi
@@ -223,33 +223,33 @@ then
 		echo -e $"This share already exists.\nPlease Try Another one"
 		exit 2;
 	fi
-	
+
 	if grep -Fxq "$sharePath" $nfsConfFile
 	then
 		echo -e $"This share already exists.\nPlease Try Another one"
 		exit 3;
 	fi
-	
+
 	SetSambaConfFile
 	SetNfsConfFile
-	
+
 	SetAcl
 elif [ "$action" == 'replace' ]; then
 	CleanSambaConfFile
 	CleanNfsConfFile
-	
+
 	SetSambaConfFile
 	SetNfsConfFile
-	
+
 	SetAcl
 elif [ "$action" == 'delete' ]; then
 	CleanSambaConfFile
 	CleanNfsConfFile
-	
+
 	RemoveAcl
 elif [ "$action" == 'acl' ]; then
 	SetAcl
-elif [ "$action" == 'remacl' ]; then	
+elif [ "$action" == 'remacl' ]; then
 	RemoveAcl
 else
 	echo $"You need to prompt for action (add, replace, acl, remacl, delete) -- Lower-case only"

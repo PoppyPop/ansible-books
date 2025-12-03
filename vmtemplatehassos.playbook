@@ -10,9 +10,9 @@
     - isoFile: "/isos/template/iso/hassos_ova-4.14.qcow2"
     - dataLvm: "local-lvm"
   tasks:
-    - name: "Create template {{ newVmId }} - {{ newVmName }}" 
-      shell: qm create {{ newVmId }} --memory 2048 --net0 virtio,bridge=vmbr0 --name {{ newVmName }} 
-    - name: "{{ newVmId }} Copy disk {{ isoFile }}"  
+    - name: "Create template {{ newVmId }} - {{ newVmName }}"
+      shell: qm create {{ newVmId }} --memory 2048 --net0 virtio,bridge=vmbr0 --name {{ newVmName }}
+    - name: "{{ newVmId }} Copy disk {{ isoFile }}"
       shell: qm importdisk {{ newVmId }} {{ isoFile }}  {{ dataLvm }}
     - name: "{{ newVmId }} Add disk"
       shell: qm set {{ newVmId }} --scsihw virtio-scsi-pci --scsi0 {{ dataLvm }}:vm-{{ newVmId }}-disk-0

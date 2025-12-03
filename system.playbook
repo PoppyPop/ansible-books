@@ -15,7 +15,7 @@
       kernel_blacklist:
         name: firewire
         state: present
-        
+
 - hosts: all
   become: yes
   vars:
@@ -42,7 +42,7 @@
     - role: dev-sec.ssh-hardening
       when: ansible_facts['distribution'] != 'Fedora'
     - role: dev-sec.ssh-hardening
-      when: ansible_facts['distribution'] == 'Fedora'      
+      when: ansible_facts['distribution'] == 'Fedora'
       ignore_errors: yes
     - role: geerlingguy.security
       when: ansible_facts['distribution'] != 'Fedora'
@@ -57,7 +57,7 @@
     - role: hudecof.banners
     - role: jgeusebroek.sysstat
     - role: andrewrothstein.screen
-    
+
 - hosts: servers
   become: yes
   vars:

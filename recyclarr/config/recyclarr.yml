@@ -75,8 +75,8 @@ sonarr:
         assign_scores_to:
           - name: WEB-2160p
           - name: WEB-1080p
-    
-    
+
+
       # HDR Formats
       - trash_ids:
           # Comment out the next line if you and all of your users' setups are fully DV compatible
@@ -127,7 +127,7 @@ sonarr:
           - name: WEB-2160p
           - name: WEB-1080p
 
-      - trash_ids:         
+      - trash_ids:
           - d844321db5e126d2e7e46152f0706532 # FR HD Bluray Tier 01
           - 3ba797e5dc13af4b8d9bb25e83d90de2 # FR LQ
           - b8e91cc8fb2bd96468fab74730c30d18 # FR Remux Tier 01
@@ -140,7 +140,7 @@ sonarr:
           - name: WEB-1080p
 
         # French Audio Version
-      - trash_ids:            
+      - trash_ids:
           - 2c29a39a4fdfd6d258799bc4c09731b9 # VFF
           - 34789ec3caa819f087e23bbf9999daf7 # VF2
         assign_scores_to:
@@ -149,7 +149,7 @@ sonarr:
           - name: WEB-1080p
             score: 101
 
-      - trash_ids: 
+      - trash_ids:
           - 7a7f4e4f58bd1058440236d033a90b67 # VFQ
           - 07a32f77690263bb9fda1842db7e273f # VOSTFR
           - 84f0acbda9c0c9de783894fb66df25aa # FanSUB
@@ -159,8 +159,8 @@ sonarr:
             score: -101
           - name: WEB-1080p
             score: -101
-            
-      - trash_ids: 
+
+      - trash_ids:
           - 7ba05c6e0e14e793538174c679126996 # MULTi
         assign_scores_to:
           - name: WEB-2160p
@@ -259,7 +259,7 @@ radarr:
         assign_scores_to:
           - name: Remux + WEB 2160p
 
-      - trash_ids:         
+      - trash_ids:
           - 5322da05b19d857acc1e75be3edf47b3 # FR HD Bluray Tier 01
           - 57f34251344be2e283fc30e00e458be6 # FR HD Bluray Tier 02
           - 48f031e76111f17ea94898f4cdc34fdc # FR LQ
@@ -274,14 +274,14 @@ radarr:
           - name: Remux + WEB 2160p
 
         # French Audio Version
-      - trash_ids:            
+      - trash_ids:
           - 404c08fd0bd67f39b4d8e5709319094e # VFF
           - 29b5f7b1a5f20f64228786c3ab1bdc7d # VF2
         assign_scores_to:
           - name: Remux + WEB 2160p
             score: 101
 
-      - trash_ids: 
+      - trash_ids:
           - b6ace47331a1d3b77942fc18156f6df6 # VFQ
           - 9172b2f683f6223e3a1846427b417a3d # VOSTFR
           - 02e48d30a176c91baf9e15de05e5dc6a # FanSUB
@@ -289,8 +289,8 @@ radarr:
         assign_scores_to:
           - name: Remux + WEB 2160p
             score: -101
-            
-      - trash_ids: 
+
+      - trash_ids:
           - 4b900e171accbfb172729b63323ea8ca # MULTi
         assign_scores_to:
           - name: Remux + WEB 2160p
