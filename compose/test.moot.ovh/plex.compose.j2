@@ -12,9 +12,7 @@ services:
       - PLEX_UID=10010
       - PLEX_GID=10008
       - CHANGE_CONFIG_DIR_OWNERSHIP=false
-    networks:
-      macvlan:
-        ipv4_address: 10.0.3.1
+    network_mode: host
     hostname: plex.moot.ovh
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
@@ -23,8 +21,3 @@ services:
       - /opt/apps/plex/database:/config
       - /opt/apps/plex/transcode:/transcode
       - /datas/dls/media:/media
-
-networks:
-  macvlan:
-    name: macvlan
-    external: true
