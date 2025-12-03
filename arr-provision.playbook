@@ -1,0 +1,238 @@
+---
+- name: Provision ARR stack on NAS after first login
+  hosts: nas
+  become: yes
+  vars_files:
+    - secrets.yaml
+
+  tasks:
+    - name: Install arr python packages
+      ansible.builtin.pip:
+        name:
+          - sonarr-py
+          - radarr-py
+          - prowlarr-py
+        virtualenv: "{{ lookup('env', 'HOME') }}/.ansible-venv"
+        virtualenv_command: python3 -m venv
+      tags: prerequisites
+      delegate_to: localhost
+
+    - name: Check if Radarr config exists
+      ansible.builtin.stat:
+        path: /opt/apps/arr/radarr/data/config.xml
+      register: radarr_config_stat
+      tags: radarr
+
+    - name: Get Radarr API key
+      community.general.xml:
+        path: /opt/apps/arr/radarr/data/config.xml
+        xpath: /Config/ApiKey
+        content: text
+      register: radarr_api_key_xml
+      when: radarr_config_stat.stat.exists
+      tags: radarr
+
+    - name: Set Radarr API key fact
+      ansible.builtin.set_fact:
+        radarr_api_key: "{{ radarr_api_key_xml.matches[0].ApiKey }}"
+      when: radarr_config_stat.stat.exists
+      tags: radarr
+
+    - name: Create download client
+      devopsarr.radarr.radarr_download_client:
+        radarr_api_key: "{{ radarr_api_key }}"
+        radarr_url: "https://radarr.{{ inventory_hostname }}"
+        name: "rdt"
+        enable: true
+        protocol: "torrent"
+        config_contract: "QBittorrentSettings"
+        implementation: "QBittorrent"
+        update_secrets: true
+        priority: 1
+        fields:
+          [
+            { "name": "host", "value": "rdtclient" },
+            { "name": "port", "value": 6500 },
+            { "name": "username", "value": "root" },
+            { "name": "password", "value": "" },
+            { "name": "movieCategory", "value": "movies" },
+          ]
+      when: radarr_config_stat.stat.exists
+      tags: radarr
+      delegate_to: localhost
+
+    - name: Check if Sonarr config exists
+      ansible.builtin.stat:
+        path: /opt/apps/arr/sonarr/data/config.xml
+      register: sonarr_config_stat
+      tags: sonarr
+
+    - name: Get Sonarr API key
+      community.general.xml:
+        path: /opt/apps/arr/sonarr/data/config.xml
+        xpath: /Config/ApiKey
+        content: text
+      register: sonarr_api_key_xml
+      when: sonarr_config_stat.stat.exists
+      tags: sonarr
+
+    - name: Set Sonarr API key fact
+      ansible.builtin.set_fact:
+        sonarr_api_key: "{{ sonarr_api_key_xml.matches[0].ApiKey }}"
+      when: sonarr_config_stat.stat.exists
+      tags: sonarr
+
+    - name: Create download client
+      devopsarr.sonarr.sonarr_download_client:
+        sonarr_api_key: "{{ sonarr_api_key }}"
+        sonarr_url: "https://sonarr.{{ inventory_hostname }}"
+        name: "rdt"
+        enable: true
+        protocol: "torrent"
+        config_contract: "QBittorrentSettings"
+        implementation: "QBittorrent"
+        update_secrets: true
+        priority: 1
+        fields:
+          [
+            { "name": "host", "value": "rdtclient" },
+            { "name": "port", "value": 6500 },
+            { "name": "username", "value": "root" },
+            { "name": "password", "value": "" },
+            { "name": "tvCategory", "value": "series" },
+          ]
+      when: sonarr_config_stat.stat.exists
+      tags: sonarr
+      delegate_to: localhost
+
+    - name: Check if Prowlarr config exists
+      ansible.builtin.stat:
+        path: /opt/apps/arr/prowlarr/data/config.xml
+      register: prowlarr_config_stat
+      tags: prowlarr
+
+    - name: Get Prowlarr API key
+      community.general.xml:
+        path: /opt/apps/arr/prowlarr/data/config.xml
+        xpath: /Config/ApiKey
+        content: text
+      register: prowlarr_api_key_xml
+      when: prowlarr_config_stat.stat.exists
+      tags: prowlarr
+
+    - name: Set Prowlarr API key fact
+      ansible.builtin.set_fact:
+        prowlarr_api_key: "{{ prowlarr_api_key_xml.matches[0].ApiKey }}"
+      when: prowlarr_config_stat.stat.exists
+      tags: prowlarr
+
+    - name: Get existing Prowlarr applications
+      ansible.builtin.uri:
+        url: "https://prowlarr.{{ inventory_hostname }}/api/v1/applications"
+        method: GET
+        headers:
+          X-Api-Key: "{{ prowlarr_api_key }}"
+        status_code: 200
+      register: prowlarr_apps
+      when: prowlarr_config_stat.stat.exists
+      tags: prowlarr
+      delegate_to: localhost
+
+    - name: Check if Sonarr application exists in Prowlarr
+      ansible.builtin.set_fact:
+        sonarr_app_exists: "{{ (prowlarr_apps.json | default([])) | selectattr('implementation', 'equalto', 'Sonarr') | list | length > 0 }}"
+      when: prowlarr_config_stat.stat.exists
+      tags: prowlarr
+
+    - name: Add Sonarr application to Prowlarr
+      ansible.builtin.uri:
+        url: "https://prowlarr.{{ inventory_hostname }}/api/v1/applications"
+        method: POST
+        headers:
+          X-Api-Key: "{{ prowlarr_api_key }}"
+        body_format: json
+        body:
+          syncLevel: "fullSync"
+          enable: true
+          fields:
+            - { name: "prowlarrUrl", value: "http://prowlarr:9696" }
+            - { name: "baseUrl", value: "http://sonarr:8989" }
+            - { name: "apiKey", value: "{{ sonarr_api_key }}" }
+            - {
+                name: "syncCategories",
+                value: [5000, 5010, 5020, 5030, 5040, 5045, 5050, 5090],
+              }
+            - { name: "animeSyncCategories", value: [5070] }
+            - { name: "syncAnimeStandardFormatSearch", value: true }
+            - {
+                name: "syncRejectBlocklistedTorrentHashesWhileGrabbing",
+                value: false,
+              }
+          implementationName: "Sonarr"
+          implementation: "Sonarr"
+          configContract: "SonarrSettings"
+          infoLink: "https://wiki.servarr.com/prowlarr/supported#sonarr"
+          tags: []
+          name: "Sonarr"
+        status_code: [200, 201]
+      when:
+        - prowlarr_config_stat.stat.exists
+        - sonarr_config_stat.stat.exists
+        - not sonarr_app_exists | default(false)
+      tags: prowlarr
+      delegate_to: localhost
+
+    - name: Check if Radarr application exists in Prowlarr
+      ansible.builtin.set_fact:
+        radarr_app_exists: "{{ (prowlarr_apps.json | default([])) | selectattr('implementation', 'equalto', 'Radarr') | list | length > 0 }}"
+      when: prowlarr_config_stat.stat.exists
+      tags: prowlarr
+
+    - name: Add Radarr application to Prowlarr
+      ansible.builtin.uri:
+        url: "https://prowlarr.{{ inventory_hostname }}/api/v1/applications"
+        method: POST
+        headers:
+          X-Api-Key: "{{ prowlarr_api_key }}"
+        body_format: json
+        body:
+          syncLevel: "fullSync"
+          enable: true
+          fields:
+            - { name: "prowlarrUrl", value: "http://prowlarr:9696" }
+            - { name: "baseUrl", value: "http://radarr:7878" }
+            - { name: "apiKey", value: "{{ radarr_api_key }}" }
+            - {
+                name: "syncCategories",
+                value:
+                  [
+                    2000,
+                    2010,
+                    2020,
+                    2030,
+                    2040,
+                    2045,
+                    2050,
+                    2060,
+                    2070,
+                    2080,
+                    2090,
+                  ],
+              }
+            - {
+                name: "syncRejectBlocklistedTorrentHashesWhileGrabbing",
+                value: false,
+              }
+          implementationName: "Radarr"
+          implementation: "Radarr"
+          configContract: "RadarrSettings"
+          infoLink: "https://wiki.servarr.com/prowlarr/supported#radarr"
+          tags: []
+          name: "Radarr"
+        status_code: [200, 201]
+      when:
+        - prowlarr_config_stat.stat.exists
+        - radarr_config_stat.stat.exists
+        - not radarr_app_exists | default(false)
+      tags: prowlarr
+      delegate_to: localhost
