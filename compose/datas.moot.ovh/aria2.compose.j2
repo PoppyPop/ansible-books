@@ -18,7 +18,17 @@ services:
     volumes:
       - /opt/apps/aria2/aria2-config:/config
       - /datas/dls/ddl/downloads:/downloads
-    network_mode: host
+    ports:
+      - 6800:6800
+      - 6888:6888
+      - 6888:6888/udp
+    networks:
+      - default
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.aria2.rule=Host(`aria2.{{inventory_hostname}}`)"
+      - "traefik.http.services.aria2.loadbalancer.server.port=6800"
     restart: unless-stopped
     pull_policy: always
 # Since Aria2 will continue to generate logs, limit the log size to 1M to prevent your hard disk from running out of space.
@@ -26,6 +36,7 @@ services:
       driver: json-file
       options:
         max-size: 1m
+
 # AriaNg is just a static web page, usually you only need to deploy on a single host.
   ariang:
     container_name: ariang
