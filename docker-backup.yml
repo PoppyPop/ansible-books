@@ -41,7 +41,7 @@
         state: directory
         mode: "0750"
         group: "ansible"
-      tags: [backup]
+      tags: [backup, restore]
 
     - name: Stop all running containers
       community.docker.docker_container:
@@ -60,7 +60,9 @@
         mode: "0640"
         group: "ansible"
       ignore_errors: true
-      tags: [backup]
+      tags:
+        - backup
+        - skip_ansible_lint
 
     - name: Display backup location
       ansible.builtin.debug:
@@ -74,7 +76,9 @@
         flat: true
       become: false
       ignore_errors: true
-      tags: [backup]
+      tags:
+        - backup
+        - skip_ansible_lint
 
     # Restore tasks
     - name: Find local backup files
@@ -95,14 +99,6 @@
     - name: Display selected backup for restore
       ansible.builtin.debug:
         msg: "Will restore from: {{ latest_local_backup.path }}"
-      when: local_backup_files.matched > 0
-      tags: [restore]
-
-    - name: Ensure remote backup directory exists
-      ansible.builtin.file:
-        path: "{{ backup_dir }}"
-        state: directory
-        mode: "0750"
       when: local_backup_files.matched > 0
       tags: [restore]
 

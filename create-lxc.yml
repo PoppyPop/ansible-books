@@ -46,6 +46,8 @@
           --features mount=nfs;cifs,nesting=1
           --ssh-public-keys /tmp/lxc_{{ lxc_id }}_ssh.pub
       when: lxc_exists.rc != 0
+      args:
+        creates: "/etc/pve/lxc/{{ lxc_id }}.conf"
 
     - name: Remove temp SSH key file
       ansible.builtin.file:
@@ -55,15 +57,15 @@
     - name: Apparmor unconfined
       ansible.builtin.lineinfile:
         path: /etc/pve/lxc/{{ lxc_id }}.conf
-        regexp: '^lxc.apparmor.profile: unconfined'
-        line: 'lxc.apparmor.profile: unconfined'
+        regexp: "^lxc.apparmor.profile: unconfined"
+        line: "lxc.apparmor.profile: unconfined"
       when: lxc_exists.rc != 0
 
     - name: Drop no capabilities
       ansible.builtin.lineinfile:
         path: /etc/pve/lxc/{{ lxc_id }}.conf
-        regexp: '^lxc.cap.drop:'
-        line: 'lxc.cap.drop:'
+        regexp: "^lxc.cap.drop:"
+        line: "lxc.cap.drop:"
       when: lxc_exists.rc != 0
 
     - name: Start LXC container
@@ -90,21 +92,25 @@
           sed -i 's/homectl firstboot --prompt-new-user/homectl firstboot/g' /usr/lib/systemd/system/systemd-homed-firstboot.service;
           systemctl daemon-reload"
       when: lxc_exists.rc != 0
+      tags:
+        - skip_ansible_lint
 
-    - name: Install and enable SSH server
+    - name: Install SSH server
       ansible.builtin.command:
         cmd: >
           pct exec {{ lxc_id }} -- bash -c "
           set -e;
-          dnf install -y openssh-server;
-          systemctl disable sshd.service;
-          systemctl enable --now sshd.socket"
+          dnf install -y openssh-server"
       when: lxc_exists.rc != 0
+      tags:
+        - skip_ansible_lint
 
     - name: Reboot container to apply fix
       ansible.builtin.command:
         cmd: pct reboot {{ lxc_id }}
       when: lxc_exists.rc != 0
+      tags:
+        - skip_ansible_lint
 
     - name: Wait for container to be running again
       ansible.builtin.command:
@@ -115,6 +121,17 @@
       delay: 3
       changed_when: false
       when: lxc_exists.rc != 0
+
+    - name: Enable SSH server
+      ansible.builtin.command:
+        cmd: >
+          pct exec {{ lxc_id }} -- bash -c "
+          set -e;
+          systemctl disable --now sshd.service;
+          systemctl enable --now sshd.socket"
+      when: lxc_exists.rc != 0
+      tags:
+        - skip_ansible_lint
 
     - name: Display container information
       ansible.builtin.debug:

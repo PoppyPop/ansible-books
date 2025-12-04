@@ -69,7 +69,7 @@
       ansible.builtin.copy:
         src: files/smb.conf
         dest: /etc/samba/smb.conf
-        mode: '0644'
+        mode: "0644"
 
     - name: Activate SMBD
       ansible.builtin.systemd_service:
@@ -120,7 +120,11 @@
       register: pdb_users
 
     - name: Create smbuser
-      ansible.builtin.command: "/usr/bin/smbpasswd -n -a {{ item }}"
+      ansible.builtin.command:
+        cmd: "/usr/bin/smbpasswd -s -a {{ item }}"
+        stdin: |
+          {{ accountdefaultpwd_clear }}
+          {{ accountdefaultpwd_clear }}
       when: item not in pdb_users.stdout
       with_items: "{{ users }}"
       changed_when: true
@@ -158,34 +162,28 @@
         user: poppy
         commands: ALL
 
+    - name: Add poppy to docker group
+      ansible.builtin.user:
+        name: poppy
+        groups: docker
+        append: true
+
     - name: Install ACL
       ansible.builtin.package:
         name: acl
         state: present
 
-    - name: Copy manage-share
-      ansible.builtin.copy:
-        src: files/manage-share.sh
-        dest: /srv/manage-share.sh
-        mode: '0744'
-
-    - name: Copy mkhomedir
-      ansible.builtin.copy:
-        src: files/mkhomedir.sh
-        dest: /srv/mkhomedir.sh
-        mode: '0744'
-
     - name: Create /datas
       ansible.builtin.file:
         path: /datas
         state: directory
-        mode: '0775'
+        mode: "0775"
 
     - name: Create /datas/usershare
       ansible.builtin.file:
         path: /datas/usershare
         state: directory
-        mode: '0775'
+        mode: "0775"
 
     - name: Set Global ACL
       ansible.posix.acl:
@@ -201,3 +199,4 @@
       community.docker.docker_network:
         name: traefik
         driver: bridge
+        internal: true

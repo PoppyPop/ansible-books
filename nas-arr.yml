@@ -1,8 +1,6 @@
 --- # noqa: run-once[play]
 - name: Install NAS Arr
   hosts: nas, datas.moot.ovh
-  strategy: free
-  serial: 2
   become: true
   vars_files:
     - secrets.yaml

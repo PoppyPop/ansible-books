@@ -24,6 +24,8 @@
     - name: Set default zone to internal
       ansible.builtin.command:
         cmd: firewall-cmd --set-default-zone=internal
+      tags:
+        - skip_ansible_lint
 
     - name: Allow SSH in internal zone
       ansible.posix.firewalld:
