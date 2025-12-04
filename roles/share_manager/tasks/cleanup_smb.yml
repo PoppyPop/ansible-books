@@ -23,7 +23,7 @@
   when: item.path not in share_manager_smb_expected_files
   notify: Restart Samba
 
-- name: Remove Obsolete SMB Includes From smb.conf
+- name: Remove Obsolete SMB Includes From shares.conf
   ansible.builtin.lineinfile:
     path: "{{ smb_main_config }}"
     state: absent

@@ -8,8 +8,8 @@ share_manager_nfs_default_options: "10.0.0.0/20(rw,no_subtree_check,anongid=513,
 # Répertoire pour fichiers SMB
 share_manager_smb_shares_dir: /etc/samba/shares.d
 
-# Chemin du smb.conf
-share_manager_smb_main_config: /etc/samba/smb.conf
+# Chemin du shares.conf
+share_manager_smb_main_config: /etc/samba/shares.conf
 
 # Groupe ACL supplémentaire par défaut
 share_manager_share_default_extra_group: "media"

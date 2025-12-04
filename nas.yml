@@ -71,6 +71,20 @@
         dest: /etc/samba/smb.conf
         mode: "0644"
 
+    - name: Add shares.conf
+      ansible.builtin.file:
+        dest: /etc/samba/shares.conf
+        state: touch
+        mode: "0644"
+        modification_time: preserve
+        access_time: preserve
+
+    - name: Add mkhomedir.sh to /srv
+      ansible.builtin.copy:
+        src: files/mkhomedir.sh
+        dest: /srv/mkhomedir.sh
+        mode: "0755"
+
     - name: Activate SMBD
       ansible.builtin.systemd_service:
         name: "smb"
@@ -179,9 +193,9 @@
         state: directory
         mode: "0775"
 
-    - name: Create /datas/usershare
+    - name: Create /datas/usershares
       ansible.builtin.file:
-        path: /datas/usershare
+        path: /datas/usershares
         state: directory
         mode: "0775"
 
@@ -200,3 +214,17 @@
         name: traefik
         driver: bridge
         internal: true
+
+    - name: Open SMB/CIFS ports in firewalld
+      ansible.posix.firewalld:
+        service: samba
+        permanent: true
+        immediate: true
+        state: enabled
+
+    - name: Open NFS ports in firewalld
+      ansible.posix.firewalld:
+        service: nfs
+        permanent: true
+        immediate: true
+        state: enabled

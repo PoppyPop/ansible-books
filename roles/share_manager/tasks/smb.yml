@@ -3,7 +3,7 @@
   ansible.builtin.file:
     path: "{{ share_manager_smb_shares_dir }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: Create SMB Share Config Files
   ansible.builtin.template:
@@ -11,11 +11,11 @@
     dest: "{{ share_manager_smb_shares_dir }}/{{ item.name }}.conf"
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
   loop: "{{ share_manager_shares_normalized }}"
   notify: Restart Samba
 
-- name: Add SMB Include To smb.conf
+- name: Add SMB Include To shares.conf
   ansible.builtin.lineinfile:
     path: "{{ share_manager_smb_main_config }}"
     insertafter: EOF
