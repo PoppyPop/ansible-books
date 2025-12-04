@@ -228,3 +228,17 @@
         permanent: true
         immediate: true
         state: enabled
+
+    - name: Open Plex ports in firewalld
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        permanent: true
+        immediate: true
+        state: enabled
+      loop:
+        - "32400/tcp"
+        - "8324/tcp"
+        - "32410/udp"
+        - "32412/udp"
+        - "32413/udp"
+        - "32414/udp"

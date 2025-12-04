@@ -4,15 +4,18 @@
   become: true
   vars:
     lxc_id: 105
-    lxc_hostname: test.moot.ovh
-    lxc_ip: 10.0.2.105/20
+    lxc_hostname: datas.moot.ovh
+    lxc_ip: 10.0.2.104/20
     lxc_gateway: 10.0.0.1
     lxc_memory: 8192
+    swap: 512
     lxc_cores: 4
     lxc_template: "isos:vztmpl/fedora-42-default_20250428_amd64.tar.xz"
     lxc_storage: data2
     lxc_disk_size: 32
-    ssh_public_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/ansiblekey.pub') }}"
+    ssh_public_key: "{{ lookup('file', 'poppy.pub') }}"
+    enable_gpu_passthrough: true
+    enable_disk_mount: true
 
   tasks:
     - name: Check if LXC container already exists
@@ -36,7 +39,7 @@
           {{ lxc_template }}
           --hostname {{ lxc_hostname }}
           --memory {{ lxc_memory }}
-          --swap 0
+          --swap {{ swap }}
           --cores {{ lxc_cores }}
           --rootfs {{ lxc_storage }}:{{ lxc_disk_size }}
           --net0 name=eth0,bridge=vmbr0,ip={{ lxc_ip }},gw={{ lxc_gateway }},ip6=auto
@@ -54,19 +57,38 @@
         path: "/tmp/lxc_{{ lxc_id }}_ssh.pub"
         state: absent
 
-    - name: Apparmor unconfined
+    - name: Add SMB/CIFS/NFS support
       ansible.builtin.lineinfile:
         path: /etc/pve/lxc/{{ lxc_id }}.conf
-        regexp: "^lxc.apparmor.profile: unconfined"
-        line: "lxc.apparmor.profile: unconfined"
-      when: lxc_exists.rc != 0
+        line: "{{ item }}"
+        state: present
+        insertafter: EOF
+      loop:
+        - "lxc.apparmor.profile: unconfined"
+        - "lxc.cap.drop:"
 
-    - name: Drop no capabilities
+    - name: Add Intel GPU device passthrough
       ansible.builtin.lineinfile:
         path: /etc/pve/lxc/{{ lxc_id }}.conf
-        regexp: "^lxc.cap.drop:"
-        line: "lxc.cap.drop:"
-      when: lxc_exists.rc != 0
+        line: "{{ item }}"
+        state: present
+        insertafter: EOF
+      loop:
+        - "lxc.cgroup2.devices.allow: c 226:0 rwm"
+        - "lxc.cgroup2.devices.allow: c 226:128 rwm"
+        - "lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir"
+        - "lxc.mount.entry: /dev/dri/renderD128 dev/dri/renderD128 none bind,optional,create=file"
+      when:
+        - enable_gpu_passthrough | bool
+
+    - name: Add datas volumes
+      ansible.builtin.lineinfile:
+        path: /etc/pve/lxc/{{ lxc_id }}.conf
+        line: "mp0: /dev/disk/by-id/scsi-36782bcb016982200259f439a6b4c3bd8-part1,mp=/datas,backup=0"
+        state: present
+        insertafter: EOF
+      when:
+        - enable_disk_mount | bool
 
     - name: Start LXC container
       ansible.builtin.command:

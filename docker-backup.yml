@@ -130,11 +130,19 @@
       when: backup_files.matched == 0
       tags: [restore]
 
+    - name: Check if apps directory exists
+      ansible.builtin.stat:
+        path: "{{ apps_dir }}"
+      register: apps_dir_stat
+      tags: [restore]
+
     - name: Backup current apps directory
       ansible.builtin.command:
         cmd: "mv {{ apps_dir }} {{ apps_dir }}.pre-restore-{{ backup_timestamp }}"
       args:
         creates: "{{ apps_dir }}.pre-restore-{{ backup_timestamp }}"
+      when:
+        - apps_dir_stat.stat.exists
       tags: [restore]
 
     - name: Extract backup archive

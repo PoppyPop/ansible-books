@@ -4,8 +4,6 @@
   become: true
   vars_files:
     - secrets.yaml
-  vars:
-    firewall_flush_rules_and_chains: false
 
   roles:
     - certbot_local
@@ -20,24 +18,24 @@
         state: present
 
   tasks:
-    # - name: Certbot | Generate Certificate
-    #   ansible.builtin.command:
-    #     argv:
-    #       - certbot
-    #       - certonly
-    #       - --non-interactive
-    #       - --agree-tos
-    #       - --dns-cloudflare
-    #       - --dns-cloudflare-credentials
-    #       - /etc/letsencrypt/dnscloudflare.ini
-    #       - -m
-    #       - "{{ certbot_mail }}"
-    #       - -d
-    #       - "{{ inventory_hostname }}"
-    #       - -d
-    #       - "*.{{ inventory_hostname }}"
-    #   args:
-    #     creates: "/etc/letsencrypt/renewal/{{ inventory_hostname }}.conf"
+    - name: Certbot | Generate Certificate
+      ansible.builtin.command:
+        argv:
+          - certbot
+          - certonly
+          - --non-interactive
+          - --agree-tos
+          - --dns-cloudflare
+          - --dns-cloudflare-credentials
+          - /etc/letsencrypt/dnscloudflare.ini
+          - -m
+          - "{{ certbot_mail }}"
+          - -d
+          - "{{ inventory_hostname }}"
+          - -d
+          - "*.{{ inventory_hostname }}"
+      args:
+        creates: "/etc/letsencrypt/renewal/{{ inventory_hostname }}.conf"
 
     # docker worker nodes
 
