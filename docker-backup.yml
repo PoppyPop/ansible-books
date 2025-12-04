@@ -31,7 +31,7 @@
 
     - name: Get running containers list
       ansible.builtin.set_fact:
-        running_containers: "{{ docker_info.containers | selectattr('Status', 'defined') | selectattr('Status', 'search', '^Up ') | map(attribute='Id') | list }}"
+        running_containers: "{{ docker_info.containers | selectattr('Status', 'defined') | selectattr('Status', 'search', '^Up ') | map(attribute='Names') | map('first') | list }}"
       tags: [backup, restore]
 
     # Backup tasks
@@ -40,12 +40,15 @@
         path: "{{ backup_dir }}"
         state: directory
         mode: "0750"
+        group: "ansible"
       tags: [backup]
 
     - name: Stop all running containers
       community.docker.docker_container:
         name: "{{ item }}"
         state: stopped
+        comparisons: # Block unwanted recreation of containers
+          "*": ignore
       loop: "{{ running_containers }}"
       tags: [backup, restore]
 
@@ -55,6 +58,8 @@
         dest: "{{ backup_dir }}/apps-{{ inventory_hostname }}-{{ backup_timestamp }}.tar.gz"
         format: gz
         mode: "0640"
+        group: "ansible"
+      ignore_errors: true
       tags: [backup]
 
     - name: Display backup location
@@ -67,11 +72,8 @@
         src: "{{ backup_dir }}/apps-{{ inventory_hostname }}-{{ backup_timestamp }}.tar.gz"
         dest: "./backups/apps-{{ inventory_hostname }}-{{ backup_timestamp }}.tar.gz"
         flat: true
-      tags: [backup]
-
-    - name: Display local backup location
-      ansible.builtin.debug:
-        msg: "Backup downloaded to: ./backups/apps-{{ inventory_hostname }}-{{ backup_timestamp }}.tar.gz"
+      become: false
+      ignore_errors: true
       tags: [backup]
 
     # Restore tasks
@@ -156,6 +158,8 @@
       community.docker.docker_container:
         name: "{{ item }}"
         state: started
+        comparisons: # Block unwanted recreation of containers
+          "*": ignore
       loop: "{{ running_containers }}"
       tags: [backup, restore]
 
