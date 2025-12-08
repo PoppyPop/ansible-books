@@ -21,7 +21,6 @@ all:
             sys10.moot.ovh:
         nas:
           hosts:
-            test.moot.ovh:
             datas.moot.ovh:
 
     pveservers:

@@ -1,0 +1,109 @@
+---
+- name: Install NAS rclone
+  hosts: nas
+  become: true
+  vars_files:
+    - secrets.yaml
+
+  tasks:
+    - name: Install rclone
+      ansible.builtin.package:
+        name: rclone
+        state: present
+
+    - name: Create rclone config directory
+      ansible.builtin.file:
+        path: /root/.config/rclone
+        state: directory
+        mode: "0700"
+
+    - name: Copy rclone configuration
+      ansible.builtin.copy:
+        src: files/rclone.conf
+        dest: /root/.config/rclone/rclone.conf
+        mode: "0600"
+
+    - name: Create systemd service for Drive to pCloud sync
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/rclone-drive-pcloud.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Rclone sync Drive to pCloud
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          ExecStart=/usr/bin/rclone sync -P --transfers=12 drive:/Home\\ Assistant/ pcloud:/Steve/Hass
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Create systemd timer for Drive to pCloud sync
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/rclone-drive-pcloud.timer
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Daily rclone sync Drive to pCloud at 22:00
+
+          [Timer]
+          OnCalendar=daily
+          OnCalendar=*-*-* 22:00:00
+          Persistent=true
+
+          [Install]
+          WantedBy=timers.target
+
+    - name: Create systemd service for pCloud to local sync
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/rclone-pcloud-local.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Rclone sync pCloud to local
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          ExecStart=/usr/bin/rclone sync -P --transfers=12 pcloud:/ /datas/pcloud/
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Create systemd timer for pCloud to local sync
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/rclone-pcloud-local.timer
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Daily rclone sync pCloud to local at 22:00
+
+          [Timer]
+          OnCalendar=daily
+          OnCalendar=*-*-* 22:30:00
+          Persistent=true
+
+          [Install]
+          WantedBy=timers.target
+
+    - name: Create /datas/pcloud directory
+      ansible.builtin.file:
+        path: /datas/pcloud
+        state: directory
+        mode: "0755"
+
+    - name: Reload systemd daemon
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: Enable and start rclone timers
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      loop:
+        - rclone-drive-pcloud.timer
+        - rclone-pcloud-local.timer

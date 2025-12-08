@@ -90,6 +90,7 @@
           - jq
           - yq
           - cracklib-dicts
+          - bash-completion
         state: present
     - name: Make sure we have a 'wheel' group
       ansible.builtin.group:
