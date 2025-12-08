@@ -21,4 +21,9 @@
   tags:
     - nas-shares
 
+- name: NAS rclone
+  import_playbook: nas-rclone.yml
+  tags:
+    - nas-rclone
+
 
