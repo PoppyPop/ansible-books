@@ -79,7 +79,7 @@
         mode: "0644"
         content: |
           [Unit]
-          Description=Daily rclone sync pCloud to local at 22:00
+          Description=Daily rclone sync pCloud to local at 22:30
 
           [Timer]
           OnCalendar=daily
