@@ -35,7 +35,7 @@
 
           [Service]
           Type=oneshot
-          ExecStart=/usr/bin/rclone sync -P --transfers=12 drive:/Home\\ Assistant/ pcloud:/Steve/Hass
+          ExecStart=/usr/bin/rclone sync -P --transfers=12 "drive:/Home Assistant/" "pcloud:/Steve/Hass"
 
           [Install]
           WantedBy=multi-user.target
@@ -68,7 +68,7 @@
 
           [Service]
           Type=oneshot
-          ExecStart=/usr/bin/rclone sync -P --transfers=12 pcloud:/ /datas/pcloud/
+          ExecStart=/usr/bin/rclone sync -P --transfers=12 "pcloud:/" "/datas/pcloud/"
 
           [Install]
           WantedBy=multi-user.target
