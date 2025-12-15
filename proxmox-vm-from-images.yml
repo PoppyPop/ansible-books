@@ -1,0 +1,248 @@
+---
+- name: Create Proxmox VM from linuxcontainers qcow2 image
+  hosts: pve2.moot.ovh
+  become: true
+  vars:
+    # Required
+    vm_id: 300
+    vm_name: demo-vm
+
+    # Image selection
+    # distro: debian # ubuntu|debian|alpine|fedora|archlinux|...
+    # release: trixie # e.g. noble|jammy|bookworm|...
+    # arch: amd64 # amd64|x86_64|...
+    distro: fedora
+    release: 43
+    arch: x86_64 # amd64|x86_64|...
+    variant: cloud # cloud variant provides disk-kvm.img
+
+    # Proxmox config
+    storage: data2 # storage for VM disks
+    memory_mb: 4096 # RAM in MB
+    cores: 4 # vCPU cores
+    sockets: 1
+    bridge: vmbr0 # network bridge
+    # Optional: resize disk after import (0 to skip)
+    disk_size_gb: 0
+
+    # Optional cloud-init
+    use_cloud_init: true
+    ciuser: "poppy"
+    cipassword: ""
+    ssh_public_key_path: "" # e.g. /root/.ssh/authorized_keys
+    ipconfig0: "ip=10.0.2.200/20,gw=10.0.0.1" # e.g. ip=10.0.2.150/20,gw=10.0.0.1 or dhcp
+
+    # Internals
+    qcow_dir: "/var/lib/vz/template/qcow"
+    streams_url: "http://images.linuxcontainers.org/streams/v1/images.json"
+    streams_cache: "{{ qcow_dir }}/images.json"
+    force_streams_refresh: false
+    dest_path: "{{ qcow_dir }}/{{ distro }}-{{ release }}-{{ arch }}-{{ variant }}-disk-kvm.img"
+
+    # Official cloud image URLs
+    use_official_images: "{{ distro in ['fedora', 'debian'] }}"
+    fedora_cloud_base: "https://download.fedoraproject.org/pub/fedora/linux/releases"
+    debian_cloud_base: "https://cloud.debian.org/images/cloud"
+    # Debian release name to number mapping
+    debian_release_map:
+      bookworm: "12"
+      trixie: "13"
+      bullseye: "11"
+      buster: "10"
+
+  tasks:
+    - name: Ensure qcow directory exists
+      ansible.builtin.file:
+        path: "{{ qcow_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Check streams cache file
+      ansible.builtin.stat:
+        path: "{{ streams_cache }}"
+      register: streams_stat
+      when: not use_official_images | bool
+
+    - name: Get Fedora cloud images directory listing
+      ansible.builtin.uri:
+        url: "{{ fedora_cloud_base }}/{{ release }}/Cloud/{{ arch }}/images/"
+        return_content: yes
+      register: fedora_listing
+      when: distro == 'fedora' and use_official_images | bool
+
+    - name: Refresh streams cache if missing or older than 1 day or forced
+      ansible.builtin.get_url:
+        url: "{{ streams_url }}"
+        dest: "{{ streams_cache }}"
+        mode: "0644"
+        force: true
+      when:
+        - not use_official_images | bool
+        - force_streams_refresh | bool or (not streams_stat.stat.exists) or ((ansible_date_time.epoch | int) - (streams_stat.stat.mtime | default(0) | int) > 86400)
+
+    - name: Read streams cache
+      ansible.builtin.slurp:
+        path: "{{ streams_cache }}"
+      register: streams_content
+      when: not use_official_images | bool
+
+    - name: Parse streams JSON
+      ansible.builtin.set_fact:
+        streams_json: "{{ streams_content.content | b64decode | from_json }}"
+      when: not use_official_images | bool
+
+    - name: Build Fedora cloud image URL
+      ansible.builtin.set_fact:
+        selected_url: "{{ fedora_cloud_base }}/{{ release }}/Cloud/{{ arch }}/images/{{ fedora_listing.content | regex_search('href=\"(Fedora-Cloud-Base-Generic-[^\"]+\\.qcow2)\"', '\\1') | first }}"
+        fedora_image_filename: "{{ fedora_listing.content | regex_search('href=\"(Fedora-Cloud-Base-Generic-[^\"]+\\.qcow2)\"', '\\1') | first }}"
+      when: distro == 'fedora' and use_official_images | bool and fedora_listing is defined
+
+    - name: Build Debian cloud image URL
+      ansible.builtin.set_fact:
+        selected_url: "{{ debian_cloud_base }}/{{ release }}/latest/debian-{{ debian_release_map[release] | default(release) }}-genericcloud-{{ 'arm64' if arch == 'arm64' else 'amd64' if arch == 'amd64' else arch }}.qcow2"
+      when: distro == 'debian' and use_official_images | bool
+
+    - name: Build image key
+      ansible.builtin.set_fact:
+        image_key: "{{ distro }}:{{ release }}:{{ arch }}:{{ variant }}"
+        selected_url: "{{ selected_url | default('') }}"
+
+    - name: Select disk-kvm URL from streams
+      ansible.builtin.set_fact:
+        selected_url: 'http://images.linuxcontainers.org/{{ streams_json.products[image_key].versions | dict2items | sort(attribute=''key'', reverse=True) | first | json_query(''value.items."disk.qcow2".path'') | default('''') }}'
+      when:
+        - not use_official_images | bool
+        - streams_json is defined
+        - "'products' in streams_json"
+        - image_key in streams_json.products
+
+    - name: Fallback to direct current URL if selection failed
+      ansible.builtin.set_fact:
+        selected_url: "http://images.linuxcontainers.org/images/{{ distro }}/{{ release }}/{{ arch }}/{{ variant }}/current/disk-kvm.img"
+      when:
+        - not use_official_images | bool
+        - selected_url is defined
+        - selected_url | length == 0
+
+    - name: Check existing qcow2 image
+      ansible.builtin.stat:
+        path: "{{ dest_path }}"
+      register: qcow_stat
+
+    - name: Decide if image needs download
+      ansible.builtin.set_fact:
+        download_image: "{{ (not qcow_stat.stat.exists) or ((ansible_date_time.epoch | int) - (qcow_stat.stat.mtime | default(0) | int) > 86400) }}"
+
+    - name: Download qcow2 image (disk-kvm.img) from selected URL
+      ansible.builtin.get_url:
+        url: "{{ selected_url }}"
+        dest: "{{ dest_path }}"
+        mode: "0644"
+        force: true
+      when: download_image | bool
+
+    - name: Check if VM already exists
+      ansible.builtin.command:
+        cmd: qm status {{ vm_id }}
+      register: vm_exists
+      failed_when: false
+      changed_when: false
+
+    - name: Create empty VM definition
+      ansible.builtin.command:
+        cmd: >-
+          qm create {{ vm_id }}
+          --name {{ vm_name }}
+          --memory {{ memory_mb }}
+          --cores {{ cores }}
+          --sockets {{ sockets }}
+          --net0 virtio,bridge={{ bridge }}
+          --scsihw virtio-scsi-pci
+          --agent enabled=1,fstrim_cloned_disks=1
+      when: vm_exists.rc != 0
+      changed_when: true
+
+    - name: Import qcow2 disk to Proxmox storage
+      ansible.builtin.command:
+        cmd: >-
+          qm importdisk {{ vm_id }} {{ dest_path }} {{ storage }} --format qcow2
+      when: vm_exists.rc != 0
+      changed_when: true
+
+    - name: Read VM config to find imported disk (unused0)
+      ansible.builtin.command:
+        cmd: qm config {{ vm_id }}
+      register: vm_cfg
+      changed_when: false
+
+    - name: Extract imported disk reference
+      ansible.builtin.set_fact:
+        imported_disk_ref: "{{ (vm_cfg.stdout_lines | select('match', '^unused\\d+:') | list | first).split(': ', 2)[1] | default('') }}"
+
+    - name: Attach imported disk as scsi0 and set boot order
+      ansible.builtin.command:
+        cmd: >-
+          qm set {{ vm_id }} --scsi0 {{ imported_disk_ref }} --boot order=scsi0
+      when: imported_disk_ref | length > 0
+      changed_when: true
+
+    - name: Resize disk to requested size (optional)
+      ansible.builtin.command:
+        cmd: >-
+          qm resize {{ vm_id }} scsi0 {{ disk_size_gb }}G
+      when: (disk_size_gb | int) > 0
+      changed_when: true
+
+    - name: Configure cloud-init drive (optional)
+      ansible.builtin.command:
+        cmd: >-
+          qm set {{ vm_id }} --ide2 {{ storage }}:cloudinit
+      when: use_cloud_init | bool
+      changed_when: true
+
+    - name: Prepare default SSH key path on remote
+      ansible.builtin.set_fact:
+        ssh_key_remote_path: "/root/.ssh/poppy.pub"
+      when: use_cloud_init | bool and (ssh_public_key_path | length == 0)
+
+    - name: Copy default SSH public key to remote
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/files/poppy.pub"
+        dest: "{{ ssh_key_remote_path }}"
+        mode: "0644"
+      when: use_cloud_init | bool and (ssh_public_key_path | length == 0)
+
+    - name: Apply cloud-init settings (optional)
+      ansible.builtin.command:
+        cmd: >-
+          qm set {{ vm_id }}
+          {{ ('--ciuser ' + ciuser) if (ciuser | length > 0) else '' }}
+          {{ ('--cipassword ' + cipassword) if (cipassword | length > 0) else '' }}
+          {{ ('--sshkey ' + ssh_public_key_path) if (ssh_public_key_path | length > 0) else ('--sshkey ' + ssh_key_remote_path) }}
+          {{ ('--ipconfig0 ' + ipconfig0) if (ipconfig0 | length > 0) else '' }}
+      when: use_cloud_init | bool
+      changed_when: true
+
+    - name: Start VM
+      ansible.builtin.command:
+        cmd: qm start {{ vm_id }}
+      register: vm_start
+      failed_when: false
+      changed_when: vm_start.rc == 0
+
+    - name: Show summary
+      ansible.builtin.debug:
+        msg: |
+          Created VM:
+            VMID:       {{ vm_id }}
+            Name:       {{ vm_name }}
+            Memory:     {{ memory_mb }} MB
+            vCPU:       {{ sockets }} sockets x {{ cores }} cores
+            Bridge:     {{ bridge }}
+            Storage:    {{ storage }}
+            Image:      {{ dest_path }}
+            CloudInit:  {{ use_cloud_init }}
+
+          Tips:
+            qm monitor {{ vm_id }}
+            qm config {{ vm_id }}
