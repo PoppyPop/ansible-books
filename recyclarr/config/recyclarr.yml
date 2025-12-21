@@ -245,6 +245,7 @@ radarr:
           - 496f355514737f7d83bf7aa4d24f8169 # TrueHD ATMOS
         assign_scores_to:
           - name: Remux + WEB 2160p
+          - name: WEB 2160p
 
       # HDR Formats
       - trash_ids:
@@ -258,6 +259,7 @@ radarr:
           - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
         assign_scores_to:
           - name: Remux + WEB 2160p
+          - name: WEB 2160p
 
       - trash_ids:
           # Uncomment the next six lines to allow x265 HD releases with HDR/DV
@@ -265,10 +267,13 @@ radarr:
         assign_scores_to:
           - name: Remux + WEB 2160p
             score: 0
+          - name: WEB 2160p
+            score: 0
       - trash_ids:
            - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
         assign_scores_to:
           - name: Remux + WEB 2160p
+          - name: WEB 2160p
 
       # Optional SDR
       # Only ever use ONE of the following custom formats:
@@ -279,6 +284,7 @@ radarr:
           - 25c12f78430a3a23413652cbd1d48d77 # SDR (no WEBDL)
         assign_scores_to:
           - name: Remux + WEB 2160p
+          - name: WEB 2160p
 
       - trash_ids:
           - 5322da05b19d857acc1e75be3edf47b3 # FR HD Bluray Tier 01
@@ -293,6 +299,7 @@ radarr:
           - 3c83a765f84239716bd5fd2d7af188f9 # FR WEB Tier 02
         assign_scores_to:
           - name: Remux + WEB 2160p
+          - name: WEB 2160p
 
         # French Audio Version
       - trash_ids:
@@ -300,6 +307,8 @@ radarr:
           - 29b5f7b1a5f20f64228786c3ab1bdc7d # VF2
         assign_scores_to:
           - name: Remux + WEB 2160p
+            score: 101
+          - name: WEB 2160p
             score: 101
 
       - trash_ids:
@@ -310,9 +319,13 @@ radarr:
         assign_scores_to:
           - name: Remux + WEB 2160p
             score: -101
+          - name: WEB 2160p
+            score: -101
 
       - trash_ids:
           - 4b900e171accbfb172729b63323ea8ca # MULTi
         assign_scores_to:
           - name: Remux + WEB 2160p
+            score: 0
+          - name: WEB 2160p
             score: 0
