@@ -1,0 +1,132 @@
+---
+
+- name: Setup Sonarr maintenance tasks
+  hosts: all
+  become: yes
+  vars:
+    # These can be overridden per host or in inventory
+    sonarr_maintenance_enabled: false
+    sonarr_url: "http://localhost:8989"
+    # sonarr_api_key should be defined in ansible vault
+    sonarr_maintenance_schedule: "daily"  # daily, weekly, or custom cron format
+    sonarr_maintenance_time: "*-*-* 03:00:00"  # systemd timer format: 3 AM daily
+    sonarr_maintenance_user: "root"
+    sonarr_scripts_dir: "/opt/scriptarr"
+    sonarr_cleanup_enabled: true
+    sonarr_unmonitor_ended_enabled: true
+    
+  tasks:
+    - name: Create scriptarr directory
+      file:
+        path: "{{ sonarr_scripts_dir }}"
+        state: directory
+        mode: "0755"
+      when: sonarr_maintenance_enabled
+
+    - name: Copy cleanup script
+      copy:
+        src: scripts/cleanup_unmonitored_empty_media.py
+        dest: "{{ sonarr_scripts_dir }}/cleanup_unmonitored_empty_media.py"
+        mode: "0755"
+      when: sonarr_maintenance_enabled and sonarr_cleanup_enabled
+
+    - name: Copy unmonitor ended series script
+      copy:
+        src: scripts/unmonitor_ended_series.py
+        dest: "{{ sonarr_scripts_dir }}/unmonitor_ended_series.py"
+        mode: "0755"
+      when: sonarr_maintenance_enabled and sonarr_unmonitor_ended_enabled
+
+    - name: Create sonarr maintenance environment file
+      copy:
+        dest: "{{ sonarr_scripts_dir }}/.env"
+        mode: "0600"
+        content: |
+          SONARR_URL={{ sonarr_url }}
+          SONARR_API_KEY={{ sonarr_api_key }}
+          APPLY=true
+      when:
+        - sonarr_maintenance_enabled
+        - sonarr_api_key is defined and sonarr_api_key
+      no_log: true
+
+    - name: Create sonarr maintenance service
+      copy:
+        dest: /etc/systemd/system/sonarr-maintenance.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Sonarr Maintenance Tasks
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          User={{ sonarr_maintenance_user }}
+          StandardOutput=journal
+          StandardError=journal
+          WorkingDirectory={{ sonarr_scripts_dir }}
+          
+          # Run both cleanup and unmonitor scripts
+          ExecStart=/bin/bash -c 'exec 2>&1; \
+            {% if sonarr_cleanup_enabled %}echo "=== Running cleanup_unmonitored_empty_media ===" && /usr/bin/python3 {{ sonarr_scripts_dir }}/cleanup_unmonitored_empty_media.py && {% endif %}\
+            {% if sonarr_unmonitor_ended_enabled %}echo "=== Running unmonitor_ended_series ===" && /usr/bin/python3 {{ sonarr_scripts_dir }}/unmonitor_ended_series.py; {% endif %}\
+            true'
+      when: sonarr_maintenance_enabled
+      register: service_result
+      notify: Reload systemd daemon
+
+    - name: Create sonarr maintenance timer
+      copy:
+        dest: /etc/systemd/system/sonarr-maintenance.timer
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Sonarr Maintenance Timer
+          Requires=sonarr-maintenance.service
+
+          [Timer]
+          OnBootSec=10min
+          OnUnitActiveSec=1d
+          OnCalendar={{ sonarr_maintenance_time }}
+          AccuracySec=5min
+          Persistent=true
+
+          [Install]
+          WantedBy=timers.target
+      when: sonarr_maintenance_enabled
+      notify: Reload systemd daemon
+
+    - name: Flush handlers to reload systemd
+      meta: flush_handlers
+      when: sonarr_maintenance_enabled
+
+    - name: Enable and start sonarr maintenance timer
+      systemd:
+        name: sonarr-maintenance.timer
+        enabled: yes
+        state: started
+        daemon_reload: yes
+      when: sonarr_maintenance_enabled
+
+    - name: Verify sonarr maintenance timer is active
+      systemd:
+        name: sonarr-maintenance.timer
+        state: started
+      when: sonarr_maintenance_enabled
+
+    - name: Display sonarr maintenance status
+      command: systemctl status sonarr-maintenance.timer --no-pager
+      register: timer_status
+      changed_when: false
+      when: sonarr_maintenance_enabled
+
+    - name: Show timer status
+      debug:
+        msg: "{{ timer_status.stdout_lines }}"
+      when: sonarr_maintenance_enabled
+
+  handlers:
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
