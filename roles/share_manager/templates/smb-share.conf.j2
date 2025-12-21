@@ -3,6 +3,8 @@ path = {{ item.path }}
 
 writeable = yes
 browseable = yes
+inherit permissions = yes
+map acl inherit = yes
 
 {% if item.comment is defined %}
 comment = {{ item.comment }}
