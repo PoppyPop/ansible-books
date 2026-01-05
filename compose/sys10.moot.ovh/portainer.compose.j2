@@ -6,8 +6,13 @@ services:
     pull_policy: always
     ports:
       - 8000:8000
-      - 9000:9000
+      - 9443:9443
     volumes:
       - /opt/apps/portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/letsencrypt/live:/certs/live
+      - /etc/letsencrypt/archive:/certs/archive
+    command:
+      --sslcert /certs/live/{{inventory_hostname}}/fullchain.pem
+      --sslkey /certs/live/{{inventory_hostname}}/privkey.pem
     restart: unless-stopped

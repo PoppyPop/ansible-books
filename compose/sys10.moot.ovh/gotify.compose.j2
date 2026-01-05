@@ -1,0 +1,21 @@
+---
+services:
+  gotify:
+    image: gotify/server:latest
+    container_name: gotify
+    pull_policy: always
+    ports:
+      - 8443:443
+    volumes:
+      - /opt/apps/gotify/data:/app/data
+      - /opt/apps/gotify/conf:/etc/gotify
+      - /etc/letsencrypt/live:/certs/live
+      - /etc/letsencrypt/archive:/certs/archive
+    environment:
+      - TZ=Europe/Paris
+      - GOTIFY_SERVER_SSL_ENABLED=true
+      - GOTIFY_SERVER_SSL_CERTFILE=/certs/live/{{inventory_hostname}}/fullchain.pem
+      - GOTIFY_SERVER_SSL_CERTKEY=/certs/live/{{inventory_hostname}}/privkey.pem
+      - GOTIFY_DEFAULTUSER_NAME=admin
+      - GOTIFY_DEFAULTUSER_PASS="{{ admin_pass }}"
+    restart: unless-stopped
