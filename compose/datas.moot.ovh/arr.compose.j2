@@ -70,6 +70,30 @@ services:
       - "traefik.http.routers.rdtclient.rule=Host(`rdtclient.{{inventory_hostname}}`)"
       - "traefik.http.services.rdtclient.loadbalancer.server.port=6500"
 
+  deluge:
+    image: lscr.io/linuxserver/deluge:latest
+    container_name: deluge
+    environment:
+      - PUID=10010
+      - PGID=10008
+      - TZ=Europe/Paris
+      - DELUGE_LOGLEVEL=error #optional
+    volumes:
+      - /opt/apps/deluge/appdata:/config
+      - /datas/dls:/datas
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+    pull_policy: always
+    networks:
+      - default
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.deluge.rule=Host(`deluge.{{inventory_hostname}}`)"
+      - "traefik.http.services.deluge.loadbalancer.server.port=8112"
+
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr

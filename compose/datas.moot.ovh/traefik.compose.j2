@@ -57,21 +57,6 @@ services:
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.tls=true"
 
-  whoami:
-    image: traefik/whoami
-    container_name: whoami
-    restart: unless-stopped
-    pull_policy: always
-    ports:
-      - "8080:80"
-    networks:
-      - traefik
-      - default
-
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`whoami.{{inventory_hostname}}`)"
-
 networks:
   traefik:
     external: true
