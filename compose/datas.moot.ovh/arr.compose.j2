@@ -84,6 +84,7 @@ services:
     ports:
       - 6881:6881
       - 6881:6881/udp
+      - 58846:58846 #optional
     restart: unless-stopped
     pull_policy: always
     networks:
