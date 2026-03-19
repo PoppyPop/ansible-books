@@ -71,7 +71,7 @@ services:
       - "traefik.http.services.rdtclient.loadbalancer.server.port=6500"
 
   deluge:
-    image: lscr.io/linuxserver/deluge:latest
+    image: lscr.io/linuxserver/deluge:2.2.0-r1-ls364
     container_name: deluge
     environment:
       - PUID=10010
