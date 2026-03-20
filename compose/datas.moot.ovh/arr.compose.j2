@@ -82,8 +82,8 @@ services:
       - /opt/apps/deluge/appdata:/config
       - /datas/dls:/datas
     ports:
-      - 6881:6881
-      - 6881:6881/udp
+      - 49152:49152
+      - 49152:49152/udp
       - 58846:58846 #optional
     restart: unless-stopped
     pull_policy: always
