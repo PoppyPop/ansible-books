@@ -15,4 +15,6 @@ services:
     command:
       --sslcert /certs/live/{{inventory_hostname}}/fullchain.pem
       --sslkey /certs/live/{{inventory_hostname}}/privkey.pem
+    environment:
+      - TZ=Europe/Paris
     restart: unless-stopped
