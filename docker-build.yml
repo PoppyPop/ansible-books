@@ -27,7 +27,29 @@
       community.docker.docker_image:
         name: "sys10.moot.ovh:5001/ocpp-2w-proxy:{{ webs_proxy_version }}"
         repository: sys10.moot.ovh:5001/ocpp-2w-proxy:latest
-      # As 'latest' usually already is present, we need to enable overwriting of existing tags:
+        # As 'latest' usually already is present, we need to enable overwriting of existing tags:
+        force_tag: true
+        push: true
+        source: local
+
+    - name: Build psa_car_controller image with patch
+      community.docker.docker_image:
+        build:
+          path: ./docker/psacc-patch
+          pull: true
+          rm: true
+          nocache: true
+        name: sys10.moot.ovh:5001/psacc-patch
+        push: true
+        tag: "{{ webs_proxy_version }}"
+        source: build
+        force_source: true
+
+    - name: Add tag latest to image
+      community.docker.docker_image:
+        name: "sys10.moot.ovh:5001/ocpp-2w-proxy:{{ webs_proxy_version }}"
+        repository: sys10.moot.ovh:5001/ocpp-2w-proxy:latest
+        # As 'latest' usually already is present, we need to enable overwriting of existing tags:
         force_tag: true
         push: true
         source: local

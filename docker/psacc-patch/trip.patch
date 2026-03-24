@@ -1,0 +1,33 @@
+diff --git a/usr/local/lib/python3.11/dist-packages/psa_car_controller/psacc/application/trip_parser.py b/usr/local/lib/python3.11/dist-packages/psa_car_controller/psacc/application/trip_parser.py
+index 6b066b3b..af67afa0 100644
+--- a/usr/local/lib/python3.11/dist-packages/psa_car_controller/psacc/application/trip_parser.py
++++ b/usr/local/lib/python3.11/dist-packages/psa_car_controller/psacc/application/trip_parser.py
+@@ -29,7 +29,14 @@ def get_thermal_consumption(start, end):
+ 
+     @staticmethod
+     def get_elec_consumption(start, end):
+-        return [start[LEVEL] - end[LEVEL], 0]
++        try:
++            start_level = start[LEVEL]
++            end_level = end[LEVEL]
++            if start_level is None or end_level is None:
++                return [0, 0]
++            return [start_level - end_level, 0]
++        except (KeyError, IndexError):
++            return [0, 0]
+ 
+     @staticmethod
+     def get_hybrid_consumption(start, end):
+@@ -60,6 +67,13 @@ def __is_refuel(self, start, end, distance):
+         return False
+ 
+     def __is_recharging(self, start, end, distance):
++        try:
++            start_level = start[LEVEL]
++            end_level = end[LEVEL]
++            if start_level is None or end_level is None:
++                return False
++        except (KeyError, IndexError):
++            return False
+         decharge = self.get_level_consumption(start, end)[0]
+         return TripParser.is_recharging(decharge, distance)
