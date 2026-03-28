@@ -22,7 +22,7 @@ services:
         tmpfs:
           size: 1000000000
     ports:
-      - "5000:5000"
+      # - "5000:5000" # Unauthenticated API, in case of emergency
       - "443:8971"
       - "8554:8554" # RTSP feeds
       - "8555:8555/tcp" # WebRTC over tcp
