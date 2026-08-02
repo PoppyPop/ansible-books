@@ -21,9 +21,9 @@ services:
     environment:
       SECRET_KEY: "{{ unifi_log_insight_secret_key }}"
       POSTGRES_PASSWORD: "{{ unifi_log_insight_postgres_password }}"
-      # ABUSEIPDB_API_KEY: "{{ unifi_log_insight_abuseipdb_api_key }}"
-      # MAXMIND_ACCOUNT_ID: "{{ unifi_log_insight_maxmind_account_id }}"
-      # MAXMIND_LICENSE_KEY: "{{ unifi_log_insight_maxmind_license_key }}"
+      ABUSEIPDB_API_KEY: "{{ unifi_log_insight_abuseipdb_api_key }}"
+      MAXMIND_ACCOUNT_ID: "{{ unifi_log_insight_maxmind_account_id }}"
+      MAXMIND_LICENSE_KEY: "{{ unifi_log_insight_maxmind_license_key }}"
       TZ: "Europe/Paris"
       UNIFI_HOST: "https://unifi.moot.ovh"
       UNIFI_API_KEY: "{{ unifi_api_key }}"
