@@ -39,6 +39,19 @@
 
     # docker worker nodes
 
+    - name: Docker | Ensure cron is installed
+      ansible.builtin.package:
+        name: "{{ 'cron' if ansible_os_family == 'Debian' else 'cronie' }}"
+        state: present
+
+    - name: Docker | Schedule daily cleanup of unused images
+      ansible.builtin.cron:
+        name: docker-image-prune-daily
+        user: root
+        minute: "15"
+        hour: "17"
+        job: "/usr/bin/docker image prune -af >/var/log/docker-image-prune.log 2>&1"
+
     - name: Custom docker config
       ansible.builtin.template:
         src: daemon.json.j2

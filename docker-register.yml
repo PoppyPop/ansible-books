@@ -5,7 +5,6 @@
   vars_files:
     - secrets.yaml
 
-
   tasks:
     - name: Get Portainer infra server
       ansible.builtin.set_fact:
@@ -14,7 +13,7 @@
 
     - name: Check if endpoint already exists in Portainer
       ansible.builtin.uri:
-        url: "http://{{ portainer_server }}:9000/api/endpoints"
+        url: "https://{{ portainer_server }}:9443/api/endpoints"
         method: GET
         headers:
           X-API-Key: "{{ portainer_api_key }}"
@@ -31,7 +30,7 @@
 
     - name: Register agent with Portainer
       ansible.builtin.uri:
-        url: "http://{{ portainer_server }}:9000/api/endpoints"
+        url: "https://{{ portainer_server }}:9443/api/endpoints"
         method: POST
         headers:
           X-API-Key: "{{ portainer_api_key }}"
